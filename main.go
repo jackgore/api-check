@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/JonathonGore/api-check/parser"
-	"github.com/JonathonGore/api-check/runner"
 	"github.com/JonathonGore/api-check/printer"
+	"github.com/JonathonGore/api-check/runner"
 )
 
 func main() {

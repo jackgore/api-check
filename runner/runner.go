@@ -51,6 +51,13 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 		return false, fmt.Errorf("Mismatching bodies\n\nExpected:\n%v\n\nActual:\n%v\n\n", expected.Body, string(body))
 	}
 
+	// Ensure headers are what we expect
+	for key, value := range expected.Headers {
+		if value != resp.Header.Get(key) {
+			return false, fmt.Errorf("Mismatching %v header\n\nExpected:\n%v\n\nActual:\n%v\n\n", key, value, resp.Header.Get(key))
+		}
+	}
+
 	return true, nil
 }
 
