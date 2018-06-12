@@ -55,8 +55,9 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 		return false, fmt.Errorf("Unexpected status code received\n\nExpected:\n%v\n\nActual:\n%v\n\n", expected.StatusCode, resp.StatusCode)
 	}
 
-	// Ensure the bodies are the same
-	if expected.Body != string(body) {
+	// Ensure the bodies are the same only if the expected body is non-empty
+	// NOTE: Right now we have no way of asserting the response body is empty
+	if expected.Body != "" && expected.Body != string(body) {
 		return false, fmt.Errorf("Mismatching bodies\n\nExpected:\n%v\n\nActual:\n%v\n\n", expected.Body, string(body))
 	}
 
