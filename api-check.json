@@ -1,8 +1,18 @@
-[{
+[
+{
 	"hostname": "http://localhost:3000",
 	"endpoint": "/example",
 	"method": "GET",
 	"response": {
-		"body": "example"
+		"body": "failure"
 	}
-}]
+},
+{
+	"hostname": "http://localhost:3000",
+	"endpoint": "/user",
+	"method": "GET",
+	"response": {
+		"body": "Get User"
+	}
+}
+]
