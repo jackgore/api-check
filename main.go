@@ -20,7 +20,7 @@ func main() {
 
 	p := parser.New(conf)
 
-	tests, err := parser.Parse("api-check.json")
+	tests, err := p.Parse("api-check.json")
 	if err != nil {
 		fmt.Printf("Unable to parse tests: %v", err)
 		return

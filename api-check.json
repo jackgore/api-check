@@ -1,6 +1,5 @@
 [
 {
-	"hostname": "http://localhost:3000",
 	"endpoint": "/example",
 	"method": "GET",
 	"response": {
@@ -8,7 +7,6 @@
 	}
 },
 {
-	"hostname": "http://localhost:3000",
 	"endpoint": "/user",
 	"method": "GET",
 	"response": {
