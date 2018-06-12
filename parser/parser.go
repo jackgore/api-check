@@ -41,10 +41,10 @@ func New(conf config.Config) Parser {
 	}
 }
 
-func (p *Parser) Parse(filename string) ([]builder.APITest, error) {
+func (p *Parser) ParseFile(file string) ([]builder.APITest, error) {
 	tests := []builder.APITest{}
 
-	contents, err := ioutil.ReadFile(filename)
+	contents, err := ioutil.ReadFile(file)
 	if err != nil {
 		return tests, err
 	}
@@ -59,6 +59,21 @@ func (p *Parser) Parse(filename string) ([]builder.APITest, error) {
 		if tests[i], err = p.validate(test); err != nil {
 			return tests, fmt.Errorf("Error in test #%v: %v", i+1, err)
 		}
+	}
+
+	return tests, nil
+}
+
+func (p *Parser) Parse(filenames []string) ([]builder.APITest, error) {
+	tests := []builder.APITest{}
+
+	for _, name := range filenames {
+		results, err := p.ParseFile(name)
+		if err != nil {
+			return tests, err
+		}
+
+		tests = append(tests, results...)
 	}
 
 	return tests, nil
