@@ -7,14 +7,23 @@ import (
 	"net/http"
 
 	"github.com/JonathonGore/api-check/builder"
+	"github.com/JonathonGore/api-check/config"
 )
 
 const (
-	DefaultEndpoint = "/"
+	DefaultEndpoint   = "/"
 	DefaultStatusCode = http.StatusOK
 )
 
-func Parse(filename string) ([]builder.APITest, error) {
+type Parser struct {
+	conf config.Config
+}
+
+func New(conf config.Config) Parser {
+	return Parser{conf}
+}
+
+func (p *Parser) Parse(filename string) ([]builder.APITest, error) {
 	tests := []builder.APITest{}
 
 	contents, err := ioutil.ReadFile(filename)
@@ -28,7 +37,7 @@ func Parse(filename string) ([]builder.APITest, error) {
 	}
 
 	for i, test := range tests {
-		if tests[i], err = validate(test); err != nil {
+		if tests[i], err = p.validate(test); err != nil {
 			return tests, fmt.Errorf("Error in test #%v: %v", i+1, err)
 		}
 	}
@@ -38,7 +47,7 @@ func Parse(filename string) ([]builder.APITest, error) {
 
 // Validates the given status code. Defaulting to the default value
 // if needed.
-func validateStatusCode(code int) (int, error) {
+func (p *Parser) validateStatusCode(code int) (int, error) {
 	// If code is 0 this means it was not set - so reset to default
 	if code == 0 {
 		return DefaultStatusCode, nil
@@ -54,9 +63,12 @@ func validateStatusCode(code int) (int, error) {
 // Validates the given hostname and assert it is either non-empty or specified
 // in the api-check config.
 // Hostname is a required field for api-check
-func validateHostname(hostname string) (string, error) {
+func (p *Parser) validateHostname(hostname string) (string, error) {
+	if p.conf.Hostname != "" {
+		return p.conf.Hostname, nil
+	}
+
 	if len(hostname) == 0 {
-		// TODO: We need to check the config file for a hostname once we enable that functionality
 		return "", fmt.Errorf("Hostname is a required field in order to run api-check")
 	}
 
@@ -66,9 +78,9 @@ func validateHostname(hostname string) (string, error) {
 
 // Validates the given endpoint returning either the input string,
 // a default value should the input be empty or an error if input is invalid.
-func validateEndpoint(endpoint string) (string, error) {
+func (p *Parser) validateEndpoint(endpoint string) (string, error) {
 	// We need the endpoint to begin with a forward slasg '/'
-	// Note: Not sure if we want to add a leading slach if the slash is missing 
+	// Note: Not sure if we want to add a leading slach if the slash is missing
 	if len(endpoint) == 0 {
 		return DefaultEndpoint, nil
 	}
@@ -83,20 +95,20 @@ func validateEndpoint(endpoint string) (string, error) {
 
 // Validate is used to validate paramaters of an APItest and replace empty
 // paramaters with default/initialized values.
-func validate(test builder.APITest) (builder.APITest, error) {
+func (p *Parser) validate(test builder.APITest) (builder.APITest, error) {
 	var err error
 
-	test.Endpoint, err = validateEndpoint(test.Endpoint)
+	test.Endpoint, err = p.validateEndpoint(test.Endpoint)
 	if err != nil {
 		return test, err
 	}
 
-	test.Hostname, err = validateHostname(test.Hostname)
+	test.Hostname, err = p.validateHostname(test.Hostname)
 	if err != nil {
 		return test, err
 	}
 
-	test.Response.StatusCode, err = validateStatusCode(test.Response.StatusCode)
+	test.Response.StatusCode, err = p.validateStatusCode(test.Response.StatusCode)
 	if err != nil {
 		return test, err
 	}

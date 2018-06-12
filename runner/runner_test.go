@@ -12,7 +12,7 @@ import (
 var (
 	expected = builder.APIResponse{
 		Body: "test",
-		Headers: map[string]string {
+		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},
 		StatusCode: http.StatusOK,
@@ -25,8 +25,8 @@ func TestAssertResponse(t *testing.T) {
 
 	validResp := &http.Response{
 		StatusCode: http.StatusOK,
-		Header: header,
-		Body: ioutil.NopCloser(bytes.NewBufferString("test")),
+		Header:     header,
+		Body:       ioutil.NopCloser(bytes.NewBufferString("test")),
 	}
 
 	// Valid response should yield successful result
@@ -38,8 +38,8 @@ func TestAssertResponse(t *testing.T) {
 
 	invalidCodeResp := &http.Response{
 		StatusCode: http.StatusUnauthorized,
-		Header: header,
-		Body: ioutil.NopCloser(bytes.NewBufferString("test")),
+		Header:     header,
+		Body:       ioutil.NopCloser(bytes.NewBufferString("test")),
 	}
 
 	// Mismatching headers in response should yield unsuccessful result
@@ -49,7 +49,7 @@ func TestAssertResponse(t *testing.T) {
 
 	invalidHeaderResp := &http.Response{
 		StatusCode: http.StatusOK,
-		Body: ioutil.NopCloser(bytes.NewBufferString("test")),
+		Body:       ioutil.NopCloser(bytes.NewBufferString("test")),
 	}
 
 	// Mismatching headers should yield unsuccessful result
@@ -59,8 +59,8 @@ func TestAssertResponse(t *testing.T) {
 
 	invalidBodyResp := &http.Response{
 		StatusCode: http.StatusOK,
-		Header: header,
-		Body: ioutil.NopCloser(bytes.NewBufferString("mismatching")),
+		Header:     header,
+		Body:       ioutil.NopCloser(bytes.NewBufferString("mismatching")),
 	}
 
 	// Mismatching bodies should yield unsuccessful result
