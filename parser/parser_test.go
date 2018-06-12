@@ -72,7 +72,7 @@ func TestValidateHostname(t *testing.T) {
 		t.Errorf("Expected to receive error when validating empty hostname")
 	}
 
-	// Creating a parser with a config with hostname should override whatever is passed in
+	// Empty hostname should use whatever is in the config
 	configParser := Parser{conf: config.Config{Hostname: hostname}}
 	if result, err := configParser.validateHostname(""); err != nil {
 		t.Errorf("Received unexpected error when validating hostname")
@@ -80,9 +80,10 @@ func TestValidateHostname(t *testing.T) {
 		t.Errorf("Did not receive expected hostname")
 	}
 
+	// Creating a parser with a config with hostname should override whatever is in config
 	if result, err := configParser.validateHostname("https://www.google.com"); err != nil {
 		t.Errorf("Received unexpected error when validating hostname")
-	} else if result != hostname {
+	} else if result != "https://www.google.com" {
 		t.Errorf("Did not receive expected hostname")
 	}
 

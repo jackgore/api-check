@@ -99,12 +99,13 @@ func (p *Parser) validateMethod(method string) (string, error) {
 // Validates the given hostname and assert it is either non-empty or specified
 // in the api-check config.
 // Hostname is a required field for api-check
+// Whatever is in the test object should override the conf
 func (p *Parser) validateHostname(hostname string) (string, error) {
-	if p.conf.Hostname != "" {
-		return p.conf.Hostname, nil
-	}
-
 	if len(hostname) == 0 {
+		if p.conf.Hostname != "" {
+			return p.conf.Hostname, nil
+		}
+
 		return "", fmt.Errorf("Hostname is a required field in order to run api-check")
 	}
 
