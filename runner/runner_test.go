@@ -1,6 +1,73 @@
 package runner
 
-import "testing"
+import (
+	"bytes"
+	"io/ioutil"
+	"net/http"
+	"testing"
+
+	"github.com/JonathonGore/api-check/builder"
+)
+
+var (
+	expected = builder.APIResponse{
+		Body: "test",
+		Headers: map[string]string {
+			"Content-Type": "application/json",
+		},
+		StatusCode: http.StatusOK,
+	}
+)
+
+func TestAssertResponse(t *testing.T) {
+	header := make(http.Header)
+	header.Set("Content-Type", "application/json")
+
+	validResp := &http.Response{
+		StatusCode: http.StatusOK,
+		Header: header,
+		Body: ioutil.NopCloser(bytes.NewBufferString("test")),
+	}
+
+	// Valid response should yield successful result
+	if success, err := assertResponse(validResp, expected); err != nil {
+		t.Errorf("Received unexpected error when asserting response: %v", err)
+	} else if !success {
+		t.Errorf("Assert response unexpectedly failed")
+	}
+
+	invalidCodeResp := &http.Response{
+		StatusCode: http.StatusUnauthorized,
+		Header: header,
+		Body: ioutil.NopCloser(bytes.NewBufferString("test")),
+	}
+
+	// Mismatching headers in response should yield unsuccessful result
+	if success, err := assertResponse(invalidCodeResp, expected); err == nil || success {
+		t.Errorf("Expected error and failure when asserting response with invalid code")
+	}
+
+	invalidHeaderResp := &http.Response{
+		StatusCode: http.StatusOK,
+		Body: ioutil.NopCloser(bytes.NewBufferString("test")),
+	}
+
+	// Mismatching headers should yield unsuccessful result
+	if success, err := assertResponse(invalidHeaderResp, expected); err == nil || success {
+		t.Errorf("Expected error and failure when asserting response with mismatching header")
+	}
+
+	invalidBodyResp := &http.Response{
+		StatusCode: http.StatusOK,
+		Header: header,
+		Body: ioutil.NopCloser(bytes.NewBufferString("mismatching")),
+	}
+
+	// Mismatching bodies should yield unsuccessful result
+	if success, err := assertResponse(invalidBodyResp, expected); err == nil || success {
+		t.Errorf("Expected error and failure when asserting response with mismatching body")
+	}
+}
 
 func TestBuildQueryString(t *testing.T) {
 	var m map[string]string
