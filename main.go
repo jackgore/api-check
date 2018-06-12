@@ -12,7 +12,7 @@ import (
 func main() {
 	fmt.Printf("Running go api-check\n\n")
 
-	conf, err := config.New("api-check-conf.json")
+	conf, err := config.New(".acconf.json")
 	if err != nil {
 		fmt.Printf("Unable to parse config object: %v", err)
 		return
