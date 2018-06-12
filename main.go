@@ -5,10 +5,11 @@ import (
 
 	"github.com/JonathonGore/api-check/parser"
 	"github.com/JonathonGore/api-check/runner"
+	"github.com/JonathonGore/api-check/printer"
 )
 
 func main() {
-	fmt.Printf("Running go api-check\n")
+	fmt.Printf("Running go api-check\n\n")
 
 	tests, err := parser.Parse("api-check.json")
 	if err != nil {
@@ -16,7 +17,7 @@ func main() {
 		return
 	}
 
-	report := runner.RunTests(tests)
+	reports := runner.RunTests(tests)
 
-	fmt.Printf("Run report: %+v\n", report)
+	printer.PrintReports(reports)
 }
