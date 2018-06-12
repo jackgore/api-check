@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 
 	"github.com/JonathonGore/api-check/builder"
 )
 
 const (
 	DefaultEndpoint = "/"
+	DefaultStatusCode = http.StatusOK
 )
 
 func Parse(filename string) ([]builder.APITest, error) {
@@ -26,12 +28,27 @@ func Parse(filename string) ([]builder.APITest, error) {
 	}
 
 	for i, test := range tests {
-		if err = validate(test); err != nil {
+		if tests[i], err = validate(test); err != nil {
 			return tests, fmt.Errorf("Error in test #%v: %v", i+1, err)
 		}
 	}
 
 	return tests, nil
+}
+
+// Validates the given status code. Defaulting to the default value
+// if needed.
+func validateStatusCode(code int) (int, error) {
+	// If code is 0 this means it was not set - so reset to default
+	if code == 0 {
+		return DefaultStatusCode, nil
+	}
+
+	if code < 100 || code >= 600 {
+		return code, fmt.Errorf("HTTP status code out of range")
+	}
+
+	return code, nil
 }
 
 // Validates the given hostname and assert it is either non-empty or specified
@@ -66,18 +83,23 @@ func validateEndpoint(endpoint string) (string, error) {
 
 // Validate is used to validate paramaters of an APItest and replace empty
 // paramaters with default/initialized values.
-func validate(test builder.APITest) error {
+func validate(test builder.APITest) (builder.APITest, error) {
 	var err error
 
 	test.Endpoint, err = validateEndpoint(test.Endpoint)
 	if err != nil {
-		return err
+		return test, err
 	}
 
 	test.Hostname, err = validateHostname(test.Hostname)
 	if err != nil {
-		return err
+		return test, err
 	}
 
-	return nil
+	test.Response.StatusCode, err = validateStatusCode(test.Response.StatusCode)
+	if err != nil {
+		return test, err
+	}
+
+	return test, nil
 }

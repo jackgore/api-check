@@ -10,12 +10,14 @@ import (
 )
 
 type RunReport struct {
-	Test builder.APITest
-	Successful bool
-	Error error
+	Test           builder.APITest
+	Successful     bool
+	Error          error
 	FailureMessage string
 }
 
+// Consumes a map of string => string representing query params
+// and builds the query string in the form "?<key>=<value>&<key>=<value>"
 func buildQueryString(query map[string]string) string {
 	if len(query) == 0 {
 		return ""
@@ -46,6 +48,11 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 		return false, err
 	}
 
+	// Ensure status code is what is expected
+	if expected.StatusCode != resp.StatusCode {
+		return false, fmt.Errorf("Unexpected status code received\n\nExpected:\n%v\n\nActual:\n%v\n\n", expected.StatusCode, resp.StatusCode)
+	}
+
 	// Ensure the bodies are the same
 	if expected.Body != string(body) {
 		return false, fmt.Errorf("Mismatching bodies\n\nExpected:\n%v\n\nActual:\n%v\n\n", expected.Body, string(body))
@@ -64,7 +71,7 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 func RunTest(test builder.APITest) RunReport {
 	report := RunReport{
 		Successful: false,
-		Test: test,
+		Test:       test,
 	}
 
 	client := &http.Client{} // TODO: Will eventually load a bunch of config from conf file

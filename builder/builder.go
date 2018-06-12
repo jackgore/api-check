@@ -15,6 +15,7 @@ type APIRequest struct {
 }
 
 type APIResponse struct {
-	Body    string            `json:"body"`
-	Headers map[string]string `json:"headers"`
+	Body       string            `json:"body"`
+	Headers    map[string]string `json:"headers"`
+	StatusCode int               `json:"code"`
 }
