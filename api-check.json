@@ -2,6 +2,11 @@
 {
 	"endpoint": "/example",
 	"method": "GET",
+	"request": {
+		"headers": {
+			"Content-Type": "application/json"
+		}
+	},
 	"response": {
 		"body": "failure"
 	}

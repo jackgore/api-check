@@ -49,6 +49,7 @@ func (p *Parser) Parse(filename string) ([]builder.APITest, error) {
 		return tests, err
 	}
 
+	// TODO: It would be cool if we could detect extra fields and warn the user about them
 	err = json.Unmarshal(contents, &tests)
 	if err != nil {
 		return tests, err

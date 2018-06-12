@@ -70,6 +70,30 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 	return true, nil
 }
 
+// BuildRequest consumes an api test object and produces the corresponding http request
+// that will be sent by the http client
+func buildRequest(test builder.APITest) (*http.Request, error) {
+	u, err := buildURL(test.Hostname, test.Endpoint, test.Request.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build request object attaching the specified method, url and body
+	req, err := http.NewRequest(test.Method, u, bytes.NewBuffer([]byte(test.Request.Body)))
+	if err != nil {
+		return nil, err
+	}
+
+	// Attach the specified request headers
+	for key, value := range test.Request.Headers {
+		req.Header.Set(key, value)
+	}
+
+	return req, nil
+}
+
+// RunTest consumes a test object and runs the test against the configured server
+// produces a RunReport of the results
 func RunTest(test builder.APITest) RunReport {
 	report := RunReport{
 		Successful: false,
@@ -78,13 +102,7 @@ func RunTest(test builder.APITest) RunReport {
 
 	client := &http.Client{} // TODO: Will eventually load a bunch of config from conf file
 
-	u, err := buildURL(test.Hostname, test.Endpoint, test.Request.QueryParams) // TODO: Hostname needs to be allowed to be overwritten in conf file
-	if err != nil {
-		report.Error = err
-		return report
-	}
-
-	req, err := http.NewRequest(test.Method, u, bytes.NewBuffer([]byte(test.Request.Body)))
+	req, err := buildRequest(test)
 	if err != nil {
 		report.Error = err
 		return report
@@ -96,6 +114,7 @@ func RunTest(test builder.APITest) RunReport {
 		return report
 	}
 
+	// Compare result to expected result
 	report.Successful, report.Error = assertResponse(resp, test.Response)
 
 	return report
