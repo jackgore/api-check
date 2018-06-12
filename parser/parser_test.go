@@ -1,12 +1,47 @@
 package parser
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/JonathonGore/api-check/config"
 )
 
-var p = Parser{}
+var p = New(config.Config{})
+
+func TestValidateMethod(t *testing.T) {
+	// Valid http method should be validate
+	if method, err := p.validateMethod("GET"); err != nil {
+		t.Errorf("Received unexpected error when validating valid method")
+	} else if method != http.MethodGet {
+		t.Errorf("Did not receive expected method")
+	}
+
+	// Valid http method should be validate but be uppercase
+	if method, err := p.validateMethod("get"); err != nil {
+		t.Errorf("Received unexpected error when validating valid method")
+	} else if method != http.MethodGet {
+		t.Errorf("Did not receive expected method")
+	}
+
+	if method, err := p.validateMethod("oPtiONs"); err != nil {
+		t.Errorf("Received unexpected error when validating valid method")
+	} else if method != http.MethodOptions {
+		t.Errorf("Did not receive expected method")
+	}
+
+	// Invalid method should fail
+	if _, err := p.validateMethod("fake method"); err == nil {
+		t.Errorf("Expected to receive error when validating invalid http method")
+	}
+
+	// Empty method should be set to default value
+	if method, err := p.validateMethod(""); err != nil {
+		t.Errorf("Received unexpected error when validating valid method")
+	} else if method != http.MethodGet {
+		t.Errorf("Did not receive expected method")
+	}
+}
 
 func TestValidateEndpoint(t *testing.T) {
 	// Empty endpoint should be set to default value

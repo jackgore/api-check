@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/JonathonGore/api-check/builder"
 	"github.com/JonathonGore/api-check/config"
@@ -12,15 +13,32 @@ import (
 
 const (
 	DefaultEndpoint   = "/"
+	DefaultMethod = http.MethodGet
 	DefaultStatusCode = http.StatusOK
 )
 
 type Parser struct {
 	conf config.Config
+	methods map[string]bool
 }
 
 func New(conf config.Config) Parser {
-	return Parser{conf}
+	methods := map[string]bool {
+		http.MethodGet: true,
+		http.MethodHead: true,
+		http.MethodPost: true,
+		http.MethodPut: true,
+		http.MethodPatch: true,
+		http.MethodDelete: true,
+		http.MethodConnect: true,
+		http.MethodOptions: true,
+		http.MethodTrace: true,
+	}
+
+	return Parser{
+		conf: conf,
+		methods: methods,
+	}
 }
 
 func (p *Parser) Parse(filename string) ([]builder.APITest, error) {
@@ -58,6 +76,24 @@ func (p *Parser) validateStatusCode(code int) (int, error) {
 	}
 
 	return code, nil
+}
+
+// ValidMethod consumes a string and asserts that it is a valid http method
+// if it is not an error is returned. If the given method is empty it returns
+// the default method. Case insensitive.
+func (p *Parser) validateMethod(method string) (string, error) {
+	if len(method) == 0 {
+		return DefaultMethod, nil
+	}
+
+	method = strings.ToUpper(method) // Uppercase to avoid case issues
+
+	// We need method to be a http supported method
+	if _, ok := p.methods[method]; !ok {
+		return method, fmt.Errorf("Received unsupport http method: %v", method)
+	}
+
+	return method, nil
 }
 
 // Validates the given hostname and assert it is either non-empty or specified
@@ -109,6 +145,11 @@ func (p *Parser) validate(test builder.APITest) (builder.APITest, error) {
 	}
 
 	test.Response.StatusCode, err = p.validateStatusCode(test.Response.StatusCode)
+	if err != nil {
+		return test, err
+	}
+
+	test.Method, err = p.validateMethod(test.Method)
 	if err != nil {
 		return test, err
 	}
