@@ -36,3 +36,32 @@ func TestValidateHostname(t *testing.T) {
 		t.Errorf("Did not receive expected hostname")
 	}
 }
+
+func TestValidateStatusCode(t *testing.T) {
+	// 0 Status code should result in default statuscode being returned
+	if code, err := validateStatusCode(0); err != nil {
+		t.Errorf("Received unexpected error when validating statuscode")
+	} else if code != DefaultStatusCode {
+		t.Errorf("Did not receive expected code. Expected %v. Actual:%v", DefaultStatusCode, code)
+	}
+
+	// Valid status code should produce itself
+	if code, err := validateStatusCode(400); err != nil {
+		t.Errorf("Received unexpected error when validating statuscode")
+	} else if code != 400 {
+		t.Errorf("Did not receive expected code. Expected %v. Actual:%v", 400, code)
+	}
+
+	// Invalid status code should throw an error
+	if _, err := validateStatusCode(999); err == nil {
+		t.Errorf("Expected to receive an error for an invalid statuscode")
+	}
+
+	if _, err := validateStatusCode(1); err == nil {
+		t.Errorf("Expected to receive an error for an invalid statuscode")
+	}
+
+	if _, err := validateStatusCode(-1); err == nil {
+		t.Errorf("Expected to receive an error for an invalid statuscode")
+	}
+}

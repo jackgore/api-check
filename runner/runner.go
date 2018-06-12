@@ -42,6 +42,8 @@ func buildURL(hostname, endpoint string, query map[string]string) (string, error
 	return hostname + endpoint + qstring, nil
 }
 
+// AssertResponse consume the http response from the server and the struct containing the
+// expected results and compares the two and ensures they are equal
 func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, error) {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
