@@ -131,8 +131,21 @@ func buildRequest(test builder.APITest) (*http.Request, error) {
 		return nil, err
 	}
 
+	var buffer *bytes.Buffer
+
+	// Only attach json to body if its non-nil with at least 1 key
+	if test.Request.JSON != nil || len(test.Request.JSON) > 0 {
+		contents, err := json.Marshal(test.Request.JSON)
+		if err != nil {
+			return nil, err
+		}
+		buffer = bytes.NewBuffer(contents)
+	} else {
+		buffer = bytes.NewBuffer([]byte(test.Request.Body))
+	}
+
 	// Build request object attaching the specified method, url and body
-	req, err := http.NewRequest(test.Method, u, bytes.NewBuffer([]byte(test.Request.Body)))
+	req, err := http.NewRequest(test.Method, u, buffer)
 	if err != nil {
 		return nil, err
 	}

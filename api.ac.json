@@ -1,23 +1,17 @@
 [
 {
-	"endpoint": "/example",
-	"method": "GET",
+	"endpoint": "/test",
+	"method": "POST",
 	"request": {
 		"headers": {
 			"Content-Type": "application/json"
+		},
+		"json": {
+			"test": "jack"
 		}
 	},
 	"response": {
-		"code": 200,
-		"body": "failure"
-	}
-},
-{
-	"endpoint": "/user",
-	"method": "GET",
-	"response": {
-		"code": 200,
-		"body": "Get User"
+		"code": 200
 	}
 }
 ]
