@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/JonathonGore/api-check/builder"
@@ -122,11 +123,21 @@ func (p *Parser) validateHostname(hostname string) (string, error) {
 			return p.conf.Hostname, nil
 		}
 
-		return "", fmt.Errorf("Hostname is a required field in order to run api-check")
+		return "", fmt.Errorf("hostname is a required field in order to run api-check")
 	}
 
-	// TODO we need to validate hostname is in valid format - will use net/http/url
-	return hostname, nil
+	u, err := url.ParseRequestURI(hostname)
+	if err != nil {
+		return "", fmt.Errorf("malformed hostname provided")
+	}
+
+	// TODO: not sure how much validation we want to do - this currently will allow schemes 
+	// that are not http or https
+
+	// Reformat the url to ensure there is not extra text like a trailing slash.
+	// NOTE: the prevents people from doing things like http://localhost:3000/v1
+	// Not sure if we want to allow that or not.
+	return fmt.Sprintf("%v://%v", u.Scheme, u.Host), nil
 }
 
 // Validates the given endpoint returning either the input string,

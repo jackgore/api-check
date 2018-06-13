@@ -93,6 +93,11 @@ func TestValidateHostname(t *testing.T) {
 	} else if result != hostname {
 		t.Errorf("Did not receive expected hostname")
 	}
+
+	// Invalid hostname should fail
+	if _, err := p.validateHostname("garbage"); err == nil {
+		t.Errorf("Expected to receive error when passing invalid url")
+	}
 }
 
 func TestValidateStatusCode(t *testing.T) {
