@@ -70,7 +70,7 @@ func (p *Parser) Parse(filenames []string) ([]builder.APITest, error) {
 	for _, name := range filenames {
 		results, err := p.ParseFile(name)
 		if err != nil {
-			return tests, err
+			return tests, fmt.Errorf("Error parsing file: %v - %v", name, err)
 		}
 
 		tests = append(tests, results...)

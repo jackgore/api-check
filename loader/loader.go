@@ -20,7 +20,7 @@ func FindRunDefs() ([]string, error) {
 	}
 
 	filepath.Walk(wd, func(path string, f os.FileInfo, err error) error {
-		if err != nil {
+		if err != nil || filepath.Base(path) == extension {
 			return nil
 		}
 

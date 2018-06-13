@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	confFile = ".acconf.json"
+	confFile = ".ac.json"
 )
 
 func main() {
@@ -36,7 +36,7 @@ func main() {
 
 	tests, err := p.Parse(files)
 	if err != nil {
-		fmt.Printf("Unable to parse tests: %v", err)
+		fmt.Printf("%v\n", err)
 		return
 	}
 
