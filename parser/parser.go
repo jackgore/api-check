@@ -13,30 +13,30 @@ import (
 
 const (
 	DefaultEndpoint   = "/"
-	DefaultMethod = http.MethodGet
+	DefaultMethod     = http.MethodGet
 	DefaultStatusCode = http.StatusOK
 )
 
 type Parser struct {
-	conf config.Config
+	conf    config.Config
 	methods map[string]bool
 }
 
 func New(conf config.Config) Parser {
-	methods := map[string]bool {
-		http.MethodGet: true,
-		http.MethodHead: true,
-		http.MethodPost: true,
-		http.MethodPut: true,
-		http.MethodPatch: true,
-		http.MethodDelete: true,
+	methods := map[string]bool{
+		http.MethodGet:     true,
+		http.MethodHead:    true,
+		http.MethodPost:    true,
+		http.MethodPut:     true,
+		http.MethodPatch:   true,
+		http.MethodDelete:  true,
 		http.MethodConnect: true,
 		http.MethodOptions: true,
-		http.MethodTrace: true,
+		http.MethodTrace:   true,
 	}
 
 	return Parser{
-		conf: conf,
+		conf:    conf,
 		methods: methods,
 	}
 }

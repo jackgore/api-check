@@ -2,6 +2,7 @@ package runner
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -42,6 +43,40 @@ func buildURL(hostname, endpoint string, query map[string]string) (string, error
 	return hostname + endpoint + qstring, nil
 }
 
+// Asserts that the actual and expected JSON are equal.
+// Behaviour is defined such that should there be extra keys in the actual map that is ok,
+// so long as every key present in expected is in actual with the same value.
+func assertJSON(actual map[string]interface{}, expected map[string]interface{}) error {
+	// Base case of having no expected keys
+	if expected == nil || len(expected) == 0 {
+		return nil
+	}
+
+	var accValue interface{}
+	var ok bool
+	for key, value := range expected {
+		if accValue, ok = actual[key]; !ok {
+			return fmt.Errorf("Actual value is missing %v key", key)
+		}
+
+		// We have to make sure our value is a comparable type
+		if i, ok := accValue.(map[string]interface{}); ok {
+			// Now what ever the expected type is must match that of accValue
+			if j, ok := value.(map[string]interface{}); !ok {
+				return fmt.Errorf("Mistmatching types for key %v", key)
+			} else {
+				return assertJSON(i, j)
+			}
+		}
+
+		if accValue != value {
+			return fmt.Errorf("Mismatching values for key: %v", key)
+		}
+	}
+
+	return nil
+}
+
 // AssertResponse consume the http response from the server and the struct containing the
 // expected results and compares the two and ensures they are equal
 func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, error) {
@@ -59,6 +94,23 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 	// NOTE: Right now we have no way of asserting the response body is empty
 	if expected.Body != "" && expected.Body != string(body) {
 		return false, fmt.Errorf("Mismatching bodies\n\nExpected:\n%v\n\nActual:\n%v\n\n", expected.Body, string(body))
+	}
+
+	// Assert also JSON - need to have well definied behaviour should these both be defined
+	if string(body) != "" {
+		actual := make(map[string]interface{})
+
+		err = json.Unmarshal(body, &actual)
+
+		// Case where we cannot unmarshal response body as JSON but user has some JSON to check for
+		if err != nil && (expected.JSON != nil || len(expected.JSON) > 0) {
+			return false, fmt.Errorf("Response body did not contain JSON or contained invalid JSON: %v", err)
+		}
+
+		err = assertJSON(actual, expected.JSON)
+		if err != nil {
+			return false, err
+		}
 	}
 
 	// Ensure headers are what we expect
