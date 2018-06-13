@@ -14,7 +14,8 @@ func New(filename string) (Config, error) {
 
 	contents, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return conf, err
+		// Dont return an error because its not needed to have a config file
+		return conf, nil
 	}
 
 	if err := json.Unmarshal(contents, &conf); err != nil {
