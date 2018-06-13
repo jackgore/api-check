@@ -23,6 +23,8 @@ type Parser struct {
 	methods map[string]bool
 }
 
+// New consumes a api-check config object and builds a new
+// Parser object.
 func New(conf config.Config) Parser {
 	methods := map[string]bool{
 		http.MethodGet:     true,
@@ -42,6 +44,8 @@ func New(conf config.Config) Parser {
 	}
 }
 
+// ParseFile consumes a single filename and parses it into a list
+// of api tests.
 func (p *Parser) ParseFile(file string) ([]builder.APITest, error) {
 	tests := []builder.APITest{}
 
@@ -58,13 +62,15 @@ func (p *Parser) ParseFile(file string) ([]builder.APITest, error) {
 
 	for i, test := range tests {
 		if tests[i], err = p.validate(test); err != nil {
-			return tests, fmt.Errorf("Error in test #%v: %v", i+1, err)
+			return tests, fmt.Errorf("error in test #%v of file: %v: %v", i+1,file, err)
 		}
 	}
 
 	return tests, nil
 }
 
+// Parse consumes a list of filenames and attempts to parse them into a list 
+// of api tests.
 func (p *Parser) Parse(filenames []string) ([]builder.APITest, error) {
 	tests := []builder.APITest{}
 
@@ -149,7 +155,6 @@ func (p *Parser) validateEndpoint(endpoint string) (string, error) {
 		return DefaultEndpoint, nil
 	}
 
-	// TODO: Probably want to use the 'filepath' package to do this
 	if string(endpoint[0]) != "/" {
 		return endpoint, fmt.Errorf("Provided endpoint must begin witha '/'. Found: %v.", endpoint[0])
 	}

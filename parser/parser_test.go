@@ -9,6 +9,14 @@ import (
 
 var p = New(config.Config{})
 
+func TestParse(t *testing.T) {
+	if results, err := p.Parse([]string{}); err != nil {
+		t.Errorf("Received unexpected error when parsing empty list of files")
+	} else if len(results) != 0 {
+		t.Errorf("Received unexpected result when parsing empty list of files")
+	}
+}
+
 func TestValidateMethod(t *testing.T) {
 	// Valid http method should be validate
 	if method, err := p.validateMethod("GET"); err != nil {
@@ -49,6 +57,12 @@ func TestValidateEndpoint(t *testing.T) {
 		t.Errorf("Received unexpected error when validating empty endpoint")
 	} else if endpoint != DefaultEndpoint {
 		t.Errorf("Empty endpoint should produce default endpoint")
+	}
+
+	if endpoint, err := p.validateEndpoint("/"); err != nil {
+		t.Errorf("Received unexpected error when validating endpoint")
+	} else if endpoint != "/" {
+		t.Errorf("Received unexpected endpoint when validating")
 	}
 
 	// Endpoint without leading slash should fail
