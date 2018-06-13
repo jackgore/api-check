@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/JonathonGore/api-check/config"
-	"github.com/JonathonGore/api-check/parser"
 	"github.com/JonathonGore/api-check/loader"
+	"github.com/JonathonGore/api-check/parser"
 	"github.com/JonathonGore/api-check/printer"
 	"github.com/JonathonGore/api-check/runner"
 )
@@ -42,4 +43,11 @@ func main() {
 	reports := runner.RunTests(tests)
 
 	printer.PrintReports(reports)
+
+	for _, report := range reports {
+		if report.Error != nil {
+			// Exit with non-zero exit code for scripting
+			os.Exit(1)
+		}
+	}
 }
