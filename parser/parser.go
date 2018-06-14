@@ -62,14 +62,14 @@ func (p *Parser) ParseFile(file string) ([]builder.APITest, error) {
 
 	for i, test := range tests {
 		if tests[i], err = p.validate(test); err != nil {
-			return tests, fmt.Errorf("error in test #%v of file: %v: %v", i+1,file, err)
+			return tests, fmt.Errorf("error in test #%v of file: %v: %v", i+1, file, err)
 		}
 	}
 
 	return tests, nil
 }
 
-// Parse consumes a list of filenames and attempts to parse them into a list 
+// Parse consumes a list of filenames and attempts to parse them into a list
 // of api tests.
 func (p *Parser) Parse(filenames []string) ([]builder.APITest, error) {
 	tests := []builder.APITest{}
@@ -137,7 +137,7 @@ func (p *Parser) validateHostname(hostname string) (string, error) {
 		return "", fmt.Errorf("malformed hostname provided")
 	}
 
-	// TODO: not sure how much validation we want to do - this currently will allow schemes 
+	// TODO: not sure how much validation we want to do - this currently will allow schemes
 	// that are not http or https
 
 	// Reformat the url to ensure there is not extra text like a trailing slash.

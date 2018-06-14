@@ -98,15 +98,14 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 		return false, fmt.Errorf("Mismatching bodies\n\nExpected:\n%v\n\nActual:\n%v\n\n", expected.Body, string(body))
 	}
 
-	// Assert also JSON - need to have well definied behaviour should these both be defined
-	if string(body) != "" {
-		actual := make(map[string]interface{})
+	// Only assert JSON if body is not defined
+	if string(body) == "" {
+		var actual interface{}
 
 		err = json.Unmarshal(body, &actual)
-
-		// Case where we cannot unmarshal response body as JSON but user has some JSON to check for
-		if err != nil && (expected.JSON != nil || len(expected.JSON) > 0) {
-			return false, fmt.Errorf("Response body did not contain JSON or contained invalid JSON: %v", err)
+		if err != nil {
+			fmt.Printf("BODY: %v\n", string(body))
+			return false, fmt.Errorf("Received unexpected error when unmarshaling JSON %v", err)
 		}
 
 		if !assertJSON(actual, expected.JSON) {
@@ -135,7 +134,7 @@ func buildRequest(test builder.APITest) (*http.Request, error) {
 	var buffer *bytes.Buffer
 
 	// Only attach json to body if its non-nil with at least 1 key
-	if test.Request.JSON != nil || len(test.Request.JSON) > 0 {
+	if test.Request.JSON != nil {
 		contents, err := json.Marshal(test.Request.JSON)
 		if err != nil {
 			return nil, err
