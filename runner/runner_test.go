@@ -30,13 +30,13 @@ func TestAssertJSON(t *testing.T) {
 	var actual map[string]interface{}
 
 	// Both maps nil should result in nil error
-	if assertJSON(actual, expected) != nil {
+	if !assertJSON(actual, expected) {
 		t.Errorf("Received unexpected error when asserting json of nil maps")
 	}
 
 	// Only expected nil should result in nil error
 	expected = make(map[string]interface{})
-	if assertJSON(actual, expected) != nil {
+	if !assertJSON(actual, expected) {
 		t.Errorf("Received unexpected error when asserting json of nil maps")
 	}
 
@@ -45,7 +45,7 @@ func TestAssertJSON(t *testing.T) {
 	}
 
 	// The exact same data should result in no error
-	if assertJSON(expected, expected) != nil {
+	if !assertJSON(expected, expected) {
 		t.Errorf("Received unexpected error when asserting json of matching maps")
 	}
 
@@ -54,7 +54,7 @@ func TestAssertJSON(t *testing.T) {
 	}
 
 	// Mismatching values should fail
-	if assertJSON(actual, expected) == nil {
+	if assertJSON(actual, expected) {
 		t.Errorf("Expected to receive error when comparing mismatching maps")
 	}
 }
