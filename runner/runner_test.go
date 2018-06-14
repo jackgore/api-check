@@ -2,11 +2,17 @@ package runner
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"testing"
 
 	"github.com/JonathonGore/api-check/builder"
+)
+
+const (
+	json1 = `{ "testing": "jack" }`
+	json2 = `{ "testing": "notjack" }`
 )
 
 var (
@@ -18,6 +24,40 @@ var (
 		StatusCode: http.StatusOK,
 	}
 )
+
+func TestAssertJSON(t *testing.T) {
+	var expected map[string]interface{}
+	var actual map[string]interface{}
+
+	// Both maps nil should result in nil error
+	if assertJSON(actual, expected) != nil {
+		t.Errorf("Received unexpected error when asserting json of nil maps")
+	}
+
+	// Only expected nil should result in nil error
+	expected = make(map[string]interface{})
+	if assertJSON(actual, expected) != nil {
+		t.Errorf("Received unexpected error when asserting json of nil maps")
+	}
+
+	if err := json.Unmarshal([]byte(json1), &expected); err != nil {
+		t.Errorf("Error unmarshaling while testing: %v", err)
+	}
+
+	// The exact same data should result in no error
+	if assertJSON(expected, expected) != nil {
+		t.Errorf("Received unexpected error when asserting json of matching maps")
+	}
+
+	if err := json.Unmarshal([]byte(json2), &actual); err != nil {
+		t.Errorf("Error unmarshaling while testing: %v", err)
+	}
+
+	// Mismatching values should fail
+	if assertJSON(actual, expected) == nil {
+		t.Errorf("Expected to receive error when comparing mismatching maps")
+	}
+}
 
 func TestAssertResponse(t *testing.T) {
 	header := make(http.Header)
