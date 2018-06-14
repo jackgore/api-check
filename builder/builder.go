@@ -9,15 +9,15 @@ type APITest struct {
 }
 
 type APIRequest struct {
-	Body        string                 `json:"body"`
-	Headers     map[string]string      `json:"headers"`
-	JSON        map[string]interface{} `json:"json"`
-	QueryParams map[string]string      `json:"query-params"`
+	Body        string            `json:"body"`
+	Headers     map[string]string `json:"headers"`
+	JSON        interface{}       `json:"json"`
+	QueryParams map[string]string `json:"query-params"`
 }
 
 type APIResponse struct {
-	Body       string                 `json:"body"`
-	Headers    map[string]string      `json:"headers"`
-	JSON       map[string]interface{} `json:"json"`
-	StatusCode int                    `json:"code"`
+	Body       string            `json:"body"`
+	Headers    map[string]string `json:"headers"`
+	JSON       interface{}       `json:"json"`
+	StatusCode int               `json:"code"`
 }

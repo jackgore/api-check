@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 
 	"github.com/JonathonGore/api-check/builder"
 )
@@ -43,38 +44,39 @@ func buildURL(hostname, endpoint string, query map[string]string) (string, error
 	return hostname + endpoint + qstring, nil
 }
 
+func removeExtraKeys(actual map[string]interface{}, expected map[string]interface{}) {
+	for k := range actual {
+		if _, ok := expected[k]; !ok {
+			delete(actual, k)
+		} else {
+			ak, aOk := actual[k].(map[string]interface{})
+			ek, eOk := expected[k].(map[string]interface{})
+			if aOk && eOk {
+				removeExtraKeys(ak, ek)
+			}
+		}
+	}
+}
+
 // Asserts that the actual and expected JSON are equal.
 // Behaviour is defined such that should there be extra keys in the actual map that is ok,
 // so long as every key present in expected is in actual with the same value.
-func assertJSON(actual map[string]interface{}, expected map[string]interface{}) error {
-	// Base case of having no expected keys
-	if expected == nil || len(expected) == 0 {
-		return nil
+func assertJSON(actual interface{}, expected interface{}) bool {
+	if expected == nil {
+		return true
 	}
 
-	var accValue interface{}
-	var ok bool
-	for key, value := range expected {
-		if accValue, ok = actual[key]; !ok {
-			return fmt.Errorf("Actual value is missing %v key", key)
-		}
-
-		// We have to make sure our value is a comparable type
-		if i, ok := accValue.(map[string]interface{}); ok {
-			// Now what ever the expected type is must match that of accValue
-			if j, ok := value.(map[string]interface{}); !ok {
-				return fmt.Errorf("Mistmatching types for key %v", key)
-			} else {
-				return assertJSON(i, j)
-			}
-		}
-
-		if accValue != value {
-			return fmt.Errorf("Mismatching values for key: %v", key)
-		}
+	expectedMap, eOk := expected.(map[string]interface{})
+	if eOk && len(expectedMap) == 0 {
+		return true
+	}
+	actualMap, aOk := actual.(map[string]interface{})
+	if eOk && aOk {
+		removeExtraKeys(actualMap, expectedMap)
+		return reflect.DeepEqual(actualMap, expectedMap)
 	}
 
-	return nil
+	return reflect.DeepEqual(actual, expected)
 }
 
 // AssertResponse consume the http response from the server and the struct containing the
@@ -107,9 +109,8 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 			return false, fmt.Errorf("Response body did not contain JSON or contained invalid JSON: %v", err)
 		}
 
-		err = assertJSON(actual, expected.JSON)
-		if err != nil {
-			return false, err
+		if !assertJSON(actual, expected.JSON) {
+			return false, fmt.Errorf("Mismatching JSON")
 		}
 	}
 
