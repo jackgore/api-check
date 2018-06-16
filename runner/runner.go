@@ -44,20 +44,6 @@ func buildURL(hostname, endpoint string, query map[string]string) (string, error
 	return hostname + endpoint + qstring, nil
 }
 
-func removeExtraKeys(actual map[string]interface{}, expected map[string]interface{}) {
-	for k := range actual {
-		if _, ok := expected[k]; !ok {
-			delete(actual, k)
-		} else {
-			ak, aOk := actual[k].(map[string]interface{})
-			ek, eOk := expected[k].(map[string]interface{})
-			if aOk && eOk {
-				removeExtraKeys(ak, ek)
-			}
-		}
-	}
-}
-
 // Asserts that the actual and expected JSON are equal.
 // Behaviour is defined such that should there be extra keys in the actual map that is ok,
 // so long as every key present in expected is in actual with the same value.
@@ -66,16 +52,31 @@ func assertJSON(actual interface{}, expected interface{}) bool {
 		return true
 	}
 
-	expectedMap, eOk := expected.(map[string]interface{})
-	if eOk && len(expectedMap) == 0 {
+	expectedMap, ok := expected.(map[string]interface{})
+	if ok {
+		// If expected is a map with no keys - pass the test
+		if len(expectedMap) == 0 {
+			return true
+		}
+
+		// If acutal is not a json object return false
+		actualMap, ok := actual.(map[string]interface{})
+		if !ok {
+			return false // TODO: Include error messages
+		}
+
+		for key, exp := range expectedMap {
+			if acc, ok := actualMap[key]; !ok {
+				return false
+			} else if !assertJSON(acc, exp) {
+				return false
+			}
+		}
+
 		return true
 	}
-	actualMap, aOk := actual.(map[string]interface{})
-	if eOk && aOk {
-		removeExtraKeys(actualMap, expectedMap)
-		return reflect.DeepEqual(actualMap, expectedMap)
-	}
 
+	// TODO: consider allowing arrays to be in different orders
 	return reflect.DeepEqual(actual, expected)
 }
 

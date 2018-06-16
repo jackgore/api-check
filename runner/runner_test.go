@@ -13,6 +13,9 @@ import (
 const (
 	json1 = `{ "testing": "jack" }`
 	json2 = `{ "testing": "notjack" }`
+	json3 = `[]`
+	json4 = `["jack", "hello"]`
+	json5 = `["hello", "jack"]`
 )
 
 var (
@@ -26,16 +29,15 @@ var (
 )
 
 func TestAssertJSON(t *testing.T) {
-	var expected map[string]interface{}
-	var actual map[string]interface{}
+	var expected interface{}
+	var actual interface{}
 
-	// Both maps nil should result in nil error
+	// Both interfaces nil should result in assertion passing
 	if !assertJSON(actual, expected) {
 		t.Errorf("Received unexpected error when asserting json of nil maps")
 	}
 
-	// Only expected nil should result in nil error
-	expected = make(map[string]interface{})
+	// Only expected nil should pass
 	if !assertJSON(actual, expected) {
 		t.Errorf("Received unexpected error when asserting json of nil maps")
 	}
@@ -56,6 +58,33 @@ func TestAssertJSON(t *testing.T) {
 	// Mismatching values should fail
 	if assertJSON(actual, expected) {
 		t.Errorf("Expected to receive error when comparing mismatching maps")
+	}
+
+	if err := json.Unmarshal([]byte(json3), &expected); err != nil {
+		t.Errorf("Error unmarshaling while testing: %v", err)
+	}
+
+	// Two empty arrays should be equal
+	if !assertJSON(expected, expected) {
+		t.Errorf("Received unexpected error when asserting json of empty arrays")
+	}
+
+	if err := json.Unmarshal([]byte(json4), &actual); err != nil {
+		t.Errorf("Error unmarshaling while testing: %v", err)
+	}
+
+	// Two unequal arrays should fail
+	if assertJSON(actual, expected) {
+		t.Errorf("Expected to receive error when comparing unequal arrays")
+	}
+
+	if err := json.Unmarshal([]byte(json4), &expected); err != nil {
+		t.Errorf("Error unmarshaling while testing: %v", err)
+	}
+
+	// Order shouldn matter in arrays
+	if !assertJSON(actual, expected) {
+		t.Errorf("Expected to receive error when comparing reordered arrays")
 	}
 }
 
