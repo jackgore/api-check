@@ -99,8 +99,8 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 		return false, fmt.Errorf("Mismatching bodies\n\nExpected:\n%v\n\nActual:\n%v\n\n", expected.Body, string(body))
 	}
 
-	// Only assert JSON if body is not defined
-	if string(body) == "" {
+	// Only assert JSON if defined and body is not
+	if string(body) == "" && expected.JSON != nil {
 		var actual interface{}
 
 		err = json.Unmarshal(body, &actual)

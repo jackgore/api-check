@@ -1,11 +1,12 @@
 package builder
 
 type APITest struct {
-	Hostname string      `json:"hostname"`
-	Endpoint string      `json:"endpoint"`
-	Method   string      `json:"method"`
-	Request  APIRequest  `json:"request"`
-	Response APIResponse `json:"response"`
+	Description string      `json:"description"`
+	Hostname    string      `json:"hostname"`
+	Endpoint    string      `json:"endpoint"`
+	Method      string      `json:"method"`
+	Request     APIRequest  `json:"request"`
+	Response    APIResponse `json:"response"`
 }
 
 type APIRequest struct {
