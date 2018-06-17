@@ -26,6 +26,13 @@ var (
 		},
 		StatusCode: http.StatusOK,
 	}
+
+	noBodyExpected = builder.APIResponse{
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+		StatusCode: http.StatusNotFound,
+	}
 )
 
 func TestAssertJSON(t *testing.T) {
@@ -135,6 +142,28 @@ func TestAssertResponse(t *testing.T) {
 	// Mismatching bodies should yield unsuccessful result
 	if success, err := assertResponse(invalidBodyResp, expected); err == nil || success {
 		t.Errorf("Expected error and failure when asserting response with mismatching body")
+	}
+
+	nobodyResp := &http.Response{
+		StatusCode: http.StatusNotFound,
+		Header:     header,
+		Body:       ioutil.NopCloser(bytes.NewBufferString("")),
+	}
+
+	// No expected body or json should be successful so long as other conditions are met
+	if success, err := assertResponse(nobodyResp, noBodyExpected); err != nil || !success {
+		t.Errorf("Received unexpected error when asserting")
+	}
+
+	bodyResp := &http.Response{
+		StatusCode: http.StatusNotFound,
+		Header:     header,
+		Body:       ioutil.NopCloser(bytes.NewBufferString(`{"name": "jack"}`)),
+	}
+
+	// If we dont expect a body but still receive one that is fine
+	if success, err := assertResponse(bodyResp, noBodyExpected); err != nil || !success {
+		t.Errorf("Received unexpected error when asserting")
 	}
 }
 
