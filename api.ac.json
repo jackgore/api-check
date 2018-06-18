@@ -1,5 +1,6 @@
 [
 {
+	"hostname": "http://localhost:3000",
 	"endpoint": "/test",
 	"method": "POST",
 	"request": {

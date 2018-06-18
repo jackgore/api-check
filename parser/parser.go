@@ -62,7 +62,7 @@ func (p *Parser) ParseFile(file string) ([]builder.APITest, error) {
 
 	for i, test := range tests {
 		if tests[i], err = p.validate(test); err != nil {
-			return tests, fmt.Errorf("error in test #%v of file: %v: %v", i+1, file, err)
+			return tests, fmt.Errorf("error in test #%v: %v", i+1, err)
 		}
 	}
 
@@ -129,7 +129,7 @@ func (p *Parser) validateHostname(hostname string) (string, error) {
 			return p.conf.Hostname, nil
 		}
 
-		return "", fmt.Errorf("hostname is a required field in order to run api-check")
+		return "", fmt.Errorf("hostname is a required field")
 	}
 
 	u, err := url.ParseRequestURI(hostname)
