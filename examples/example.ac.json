@@ -1,0 +1,9 @@
+[{
+	"hostname": "http://localhost:8080",
+	"method": "get",
+	"endpoint": "/foo",
+	"response": {
+		"code": 200,
+		"body": "bar"
+	}
+}]
