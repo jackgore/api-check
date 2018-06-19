@@ -13,7 +13,7 @@ import (
 )
 
 type RunConfig struct {
-	verbose bool
+	verbose    bool
 	standalone bool
 }
 
@@ -44,13 +44,13 @@ func run(t *testing.T) {
 	// Allows the user to have multiple files containing api testing definitions
 	files, err := loader.FindRunDefs()
 	if err != nil {
-		printf("Unable to find test definition files: %v\n", err)
+		fmt.Printf("Unable to find test definition files: %v\n", err)
 		return
 	}
 
 	conf, err := config.New(confFile)
 	if err != nil {
-		printf("Unable to parse config file: %v\n", err)
+		fmt.Printf("Unable to parse config file: %v\n", err)
 		return
 	}
 
@@ -58,7 +58,7 @@ func run(t *testing.T) {
 
 	tests, err := p.Parse(files)
 	if err != nil {
-		printf("%v\n", err)
+		fmt.Printf("%v\n", err)
 		return
 	}
 
