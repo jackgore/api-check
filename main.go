@@ -11,5 +11,5 @@ const (
 
 func main() {
 	suite.Verbose(defaultVerbosity)
-	suite.Run()
+	suite.RunStandalone()
 }
