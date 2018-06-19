@@ -3,6 +3,7 @@ package suite
 import (
 	"fmt"
 	"os"
+	"testing"
 
 	"github.com/JonathonGore/api-check/config"
 	"github.com/JonathonGore/api-check/loader"
@@ -13,6 +14,7 @@ import (
 
 type RunConfig struct {
 	verbose bool
+	standalone bool
 }
 
 const (
@@ -30,11 +32,12 @@ func printf(text string, args ...interface{}) {
 	}
 }
 
+// Verbose accepts a boolean argument and sets the logging level accordingly
 func Verbose(isVerbose bool) {
 	rconf.verbose = isVerbose
 }
 
-func Run() {
+func run(t *testing.T) {
 	printf("Running go api-check\n\n")
 
 	// This loads the files containing step definitions below the working directory.
@@ -67,8 +70,31 @@ func Run() {
 
 	for _, report := range reports {
 		if report.Error != nil {
-			// Exit with non-zero exit code for scripting
-			os.Exit(1)
+			if t != nil {
+				t.Errorf("%v", report.Error) // Signal to go test we have failed a test
+			} else {
+				// Only exit when running in standalone mode
+				os.Exit(1)
+			}
 		}
 	}
+}
+
+// RunStandalone configures the runner to use os.Exit(1) if a failure test occurs, and then
+// runs the test suite.
+func RunStandalone() {
+	rconf.standalone = true
+
+	var t *testing.T // Pass in nil testing context
+	run(t)
+}
+
+// Run reads in *.ac.json files below or in the current directory and runs the test suite
+// for each test in every file
+func Run(t *testing.T) {
+	if t == nil {
+		return // Just return to avoid breaking the users `go test ./... command`
+	}
+
+	run(t)
 }
