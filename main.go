@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	confFile = ".ac.json"
+	confFile         = ".ac.json"
 	defaultVerbosity = true
 )
 

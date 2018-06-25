@@ -16,10 +16,11 @@ const (
 	json3 = `[]`
 	json4 = `["jack", "hello"]`
 	json5 = `["hello", "jack"]`
+	json6 = `{ "testing": "jack", "extra":"key" }`
 )
 
 var (
-	expected = builder.APIResponse{
+	basicAPI = builder.APIResponse{
 		Body: "test",
 		Headers: map[string]string{
 			"Content-Type": "application/json",
@@ -27,168 +28,139 @@ var (
 		StatusCode: http.StatusOK,
 	}
 
-	noBodyExpected = builder.APIResponse{
+	noBodyAPI = builder.APIResponse{
 		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},
-		StatusCode: http.StatusNotFound,
+		StatusCode: http.StatusOK,
+	}
+
+	basicResponse = http.Response{
+		StatusCode: http.StatusOK,
+		// Header set in init() function
+		Body: ioutil.NopCloser(bytes.NewBufferString("test")),
+	}
+
+	noBodyResponse = http.Response{
+		StatusCode: http.StatusOK,
+		// Header set in init() function
+		Body: ioutil.NopCloser(bytes.NewBufferString("")),
+	}
+
+	statusCodeResponse = http.Response{
+		StatusCode: http.StatusUnauthorized,
+		// Header set in init() function
+		Body: ioutil.NopCloser(bytes.NewBufferString("test")),
+	}
+
+	headerResponse = http.Response{
+		StatusCode: http.StatusOK,
+		Body:       ioutil.NopCloser(bytes.NewBufferString("test")),
+	}
+
+	bodyResponse = http.Response{
+		StatusCode: http.StatusOK,
+		// Header set in init() function
+		Body: ioutil.NopCloser(bytes.NewBufferString("mismatching")),
 	}
 )
 
+func init() {
+	header := make(http.Header)
+	header.Set("Content-Type", "application/json")
+
+	basicResponse.Header = header
+	statusCodeResponse.Header = header
+	bodyResponse.Header = header
+	noBodyResponse.Header = header
+}
+
+var assertJSONTests = []struct {
+	actual   string
+	expected string
+	succeed  bool
+}{
+	{"{}", "{}", true},    // Two empty responses should be equal
+	{json1, json1, true},  // Equal JSON should succeed
+	{json1, json2, false}, // Mismatching values for a JSON key should fail
+	{json3, json3, true},  // Empty arrays should be equal
+	{json3, json4, false}, // If we dont get the expected array elements we should fail
+	{json5, json4, false}, // Bad ordering of arrays should cause a failure
+	{json1, json6, false}, // Extra key in expected should fail
+	{json6, json1, true},  // Extra key in actual should succeed
+}
+
+var assertResponseTests = []struct {
+	actual   *http.Response
+	expected builder.APIResponse
+	succeed  bool
+}{
+	{&basicResponse, basicAPI, true},       // Matching response and expected should succeed
+	{&statusCodeResponse, basicAPI, false}, // Mismatching status codes should fail
+	{&headerResponse, basicAPI, false},     // Missing header should fail
+	{&bodyResponse, basicAPI, false},       // Mismatching body should fail
+	{&noBodyResponse, noBodyAPI, true},     // Actual and expected with no body's should succeed
+	{&bodyResponse, noBodyAPI, true},       // If we dont expect a body but still receive one then succeed
+}
+
+var buildQueryStringTests = []struct {
+	input    map[string]string
+	expected []string
+}{
+	{map[string]string{}, []string{""}},
+	{map[string]string{"key": "value"}, []string{"?key=value"}},
+	{map[string]string{"key": "value", "another": "key"}, []string{"?another=key&key=value", "?key=value&another=key"}},
+}
+
 func TestAssertJSON(t *testing.T) {
-	var expected interface{}
 	var actual interface{}
+	var expected interface{}
 
-	// Both interfaces nil should result in assertion passing
-	if !assertJSON(actual, expected) {
-		t.Errorf("Received unexpected error when asserting json of nil maps")
-	}
+	for _, test := range assertJSONTests {
+		if err := json.Unmarshal([]byte(test.actual), &actual); err != nil {
+			t.Errorf("Unable to unmarshal JSON: %v", err)
+		}
 
-	// Only expected nil should pass
-	if !assertJSON(actual, expected) {
-		t.Errorf("Received unexpected error when asserting json of nil maps")
-	}
+		if err := json.Unmarshal([]byte(test.expected), &expected); err != nil {
+			t.Errorf("Unable to unmarshal JSON: %v", err)
+		}
 
-	if err := json.Unmarshal([]byte(json1), &expected); err != nil {
-		t.Errorf("Error unmarshaling while testing: %v", err)
-	}
-
-	// The exact same data should result in no error
-	if !assertJSON(expected, expected) {
-		t.Errorf("Received unexpected error when asserting json of matching maps")
-	}
-
-	if err := json.Unmarshal([]byte(json2), &actual); err != nil {
-		t.Errorf("Error unmarshaling while testing: %v", err)
-	}
-
-	// Mismatching values should fail
-	if assertJSON(actual, expected) {
-		t.Errorf("Expected to receive error when comparing mismatching maps")
-	}
-
-	if err := json.Unmarshal([]byte(json3), &expected); err != nil {
-		t.Errorf("Error unmarshaling while testing: %v", err)
-	}
-
-	// Two empty arrays should be equal
-	if !assertJSON(expected, expected) {
-		t.Errorf("Received unexpected error when asserting json of empty arrays")
-	}
-
-	if err := json.Unmarshal([]byte(json4), &actual); err != nil {
-		t.Errorf("Error unmarshaling while testing: %v", err)
-	}
-
-	// Two unequal arrays should fail
-	if assertJSON(actual, expected) {
-		t.Errorf("Expected to receive error when comparing unequal arrays")
-	}
-
-	if err := json.Unmarshal([]byte(json4), &expected); err != nil {
-		t.Errorf("Error unmarshaling while testing: %v", err)
-	}
-
-	// Order shouldn matter in arrays
-	if !assertJSON(actual, expected) {
-		t.Errorf("Expected to receive error when comparing reordered arrays")
+		if assertJSON(actual, expected) != test.succeed {
+			succeedText := "passed"
+			if !test.succeed {
+				succeedText = "failed"
+			}
+			t.Errorf("Received: %v Expected: %v - Test should have: %v", test.actual, test.expected, succeedText)
+		}
 	}
 }
 
 func TestAssertResponse(t *testing.T) {
-	header := make(http.Header)
-	header.Set("Content-Type", "application/json")
-
-	validResp := &http.Response{
-		StatusCode: http.StatusOK,
-		Header:     header,
-		Body:       ioutil.NopCloser(bytes.NewBufferString("test")),
-	}
-
-	// Valid response should yield successful result
-	if success, err := assertResponse(validResp, expected); err != nil {
-		t.Errorf("Received unexpected error when asserting response: %v", err)
-	} else if !success {
-		t.Errorf("Assert response unexpectedly failed")
-	}
-
-	invalidCodeResp := &http.Response{
-		StatusCode: http.StatusUnauthorized,
-		Header:     header,
-		Body:       ioutil.NopCloser(bytes.NewBufferString("test")),
-	}
-
-	// Mismatching headers in response should yield unsuccessful result
-	if success, err := assertResponse(invalidCodeResp, expected); err == nil || success {
-		t.Errorf("Expected error and failure when asserting response with invalid code")
-	}
-
-	invalidHeaderResp := &http.Response{
-		StatusCode: http.StatusOK,
-		Body:       ioutil.NopCloser(bytes.NewBufferString("test")),
-	}
-
-	// Mismatching headers should yield unsuccessful result
-	if success, err := assertResponse(invalidHeaderResp, expected); err == nil || success {
-		t.Errorf("Expected error and failure when asserting response with mismatching header")
-	}
-
-	invalidBodyResp := &http.Response{
-		StatusCode: http.StatusOK,
-		Header:     header,
-		Body:       ioutil.NopCloser(bytes.NewBufferString("mismatching")),
-	}
-
-	// Mismatching bodies should yield unsuccessful result
-	if success, err := assertResponse(invalidBodyResp, expected); err == nil || success {
-		t.Errorf("Expected error and failure when asserting response with mismatching body")
-	}
-
-	nobodyResp := &http.Response{
-		StatusCode: http.StatusNotFound,
-		Header:     header,
-		Body:       ioutil.NopCloser(bytes.NewBufferString("")),
-	}
-
-	// No expected body or json should be successful so long as other conditions are met
-	if success, err := assertResponse(nobodyResp, noBodyExpected); err != nil || !success {
-		t.Errorf("Received unexpected error when asserting")
-	}
-
-	bodyResp := &http.Response{
-		StatusCode: http.StatusNotFound,
-		Header:     header,
-		Body:       ioutil.NopCloser(bytes.NewBufferString(`{"name": "jack"}`)),
-	}
-
-	// If we dont expect a body but still receive one that is fine
-	if success, err := assertResponse(bodyResp, noBodyExpected); err != nil || !success {
-		t.Errorf("Received unexpected error when asserting")
+	for _, test := range assertResponseTests {
+		if ok, _ := assertResponse(test.actual, test.expected); ok != test.succeed {
+			succeedText := "passed"
+			if !test.succeed {
+				succeedText = "failed"
+			}
+			t.Errorf("Received: %v Expected: %+v - Test should have: %+v", test.actual, test.expected, succeedText)
+		}
 	}
 }
 
 func TestBuildQueryString(t *testing.T) {
-	var m map[string]string
+	for _, test := range buildQueryStringTests {
+		q := buildQueryString(test.input)
+		passed := false
 
-	// Nil map should produce empty string
-	if q := buildQueryString(m); q != "" {
-		t.Errorf("Passing empty map should produce empty query. Received: %v", q)
-	}
+		for _, expected := range test.expected {
+			if expected == q {
+				passed = true
+				break
+			}
+		}
 
-	// Empty map should produce empty string
-	m = make(map[string]string)
-	if q := buildQueryString(m); q != "" {
-		t.Errorf("Passing empty map should produce empty query. Received: %v", q)
-	}
-
-	m["key"] = "value"
-	if q := buildQueryString(m); q != "?key=value" {
-		t.Errorf("Passing map with single value should produce built query. Received: %v", q)
-	}
-
-	m["another"] = "key"
-	q := buildQueryString(m)
-	if q != "?key=value&another=key" && q != "?another=key&key=value" {
-		t.Errorf("Passing map with single value should produce built query. Received: %v", q)
+		if !passed {
+			t.Errorf("Received: %v. Expected something similar to: %v", q, test.expected[0])
+		}
 	}
 }
