@@ -90,7 +90,7 @@ func RunStandalone() {
 }
 
 // Run reads in *.ac.json files below or in the current directory and runs the test suite
-// for each test in every file
+// for each test in every file.
 func Run(t *testing.T) {
 	if t == nil {
 		return // Just return to avoid breaking the users `go test ./... command`
