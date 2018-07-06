@@ -11,6 +11,7 @@ import (
 	"github.com/JonathonGore/api-check/builder"
 )
 
+// RunReport describes the result of a single test.
 type RunReport struct {
 	Test           builder.APITest
 	Successful     bool
@@ -154,6 +155,18 @@ func buildRequest(test builder.APITest) (*http.Request, error) {
 	// Attach the specified request headers
 	for key, value := range test.Request.Headers {
 		req.Header.Set(key, value)
+	}
+
+	// Determine if we need to set a cookie header
+	if test.Request.Cookies != nil && len(test.Request.Cookies) > 0 {
+		cookieHeader := ""
+		for i, cookie := range test.Request.Cookies {
+			if i > 0 {
+				cookieHeader = cookieHeader + "; "
+			}
+			cookieHeader = cookieHeader + fmt.Sprintf("%v=%v", cookie.Name, cookie.Value)
+		}
+		req.Header.Set("Cookie", cookieHeader)
 	}
 
 	return req, nil
