@@ -35,6 +35,14 @@ var (
 		StatusCode: http.StatusOK,
 	}
 
+	emptyJSONAPI = builder.APIResponse{
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+		JSON:       "",
+		StatusCode: http.StatusOK,
+	}
+
 	basicResponse = http.Response{
 		StatusCode: http.StatusOK,
 		// Header set in init() function
@@ -101,6 +109,7 @@ var assertResponseTests = []struct {
 	{&bodyResponse, basicAPI, false},       // Mismatching body should fail
 	{&noBodyResponse, noBodyAPI, true},     // Actual and expected with no body's should succeed
 	{&bodyResponse, noBodyAPI, true},       // If we dont expect a body but still receive one then succeed
+	{&noBodyResponse, emptyJSONAPI, false}, // If we dont specify a body but we receive empty string fail as its invalid JSON
 }
 
 var buildQueryStringTests = []struct {

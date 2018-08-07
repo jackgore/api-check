@@ -106,7 +106,6 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 
 		err = json.Unmarshal(body, &actual)
 		if err != nil {
-			fmt.Printf("BODY: %v\n", string(body))
 			return false, fmt.Errorf("Received unexpected error when unmarshaling JSON %v", err)
 		}
 
