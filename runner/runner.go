@@ -101,7 +101,7 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 	}
 
 	// Only assert JSON if defined and body is not
-	if string(body) == "" && expected.JSON != nil {
+	if string(expected.Body) == "" && expected.JSON != nil {
 		var actual interface{}
 
 		err = json.Unmarshal(body, &actual)
