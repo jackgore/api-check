@@ -19,8 +19,8 @@ type RunReport struct {
 	FailureMessage string
 }
 
-// Consumes a map of string => string representing query params
-// and builds the query string in the form "?<key>=<value>&<key>=<value>"
+// buildQueryString Consumes a map of string => string representing query params
+// and builds the query string in the form "?<key>=<value>&<key>=<value>".
 func buildQueryString(query map[string]string) string {
 	if len(query) == 0 {
 		return ""
@@ -125,7 +125,7 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 }
 
 // BuildRequest consumes an api test object and produces the corresponding http request
-// that will be sent by the http client
+// that will be sent by the http client to the server.
 func buildRequest(test builder.APITest) (*http.Request, error) {
 	u, err := buildURL(test.Hostname, test.Endpoint, test.Request.QueryParams)
 	if err != nil {
@@ -171,15 +171,16 @@ func buildRequest(test builder.APITest) (*http.Request, error) {
 	return req, nil
 }
 
-// RunTest consumes a test object and runs the test against the configured server
-// produces a RunReport of the results
+// RunTest consumes an API test to be run against the configured server
+// produces a RunReport of the results of the test.
 func RunTest(test builder.APITest) RunReport {
 	report := RunReport{
 		Successful: false,
 		Test:       test,
 	}
 
-	client := &http.Client{} // TODO: Will eventually load a bunch of config from conf file
+	// TODO: Will eventually load a bunch of http client config (i.e. custom timeout)
+	client := &http.Client{}
 
 	req, err := buildRequest(test)
 	if err != nil {
@@ -193,12 +194,13 @@ func RunTest(test builder.APITest) RunReport {
 		return report
 	}
 
-	// Compare result to expected result
 	report.Successful, report.Error = assertResponse(resp, test.Response)
 
 	return report
 }
 
+// RunTests consumes a slice of APITests, runs each test and produces
+// a slice of RunReports for each test that is ran.
 func RunTests(tests []builder.APITest) []RunReport {
 	reports := make([]RunReport, len(tests))
 

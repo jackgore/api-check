@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"testing"
 
 	"github.com/JonathonGore/api-check/builder"
@@ -83,6 +84,31 @@ func init() {
 	noBodyResponse.Header = header
 }
 
+var buildRequestTests = []struct {
+	test builder.APITest
+	expected *http.Request
+	success bool
+}{
+
+}
+
+func TestBuildRequest(t *testing.T) {
+	for _, test := range buildRequestTests {
+		r, err := buildRequest(test.test)
+		if test.success && err != nil {
+			t.Errorf("expected test to succeed but it failed with error: %v", err)
+		}
+
+		if !test.success && err == nil {
+			t.Errorf("expected test to fail but it succeeded: %v", err)
+		}
+
+		if !reflect.DeepEqual(*r, *test.expected) {
+			t.Errorf("mismatching request");
+		}
+	}
+}
+
 var assertJSONTests = []struct {
 	actual   string
 	expected string
@@ -96,29 +122,6 @@ var assertJSONTests = []struct {
 	{json5, json4, false}, // Bad ordering of arrays should cause a failure
 	{json1, json6, false}, // Extra key in expected should fail
 	{json6, json1, true},  // Extra key in actual should succeed
-}
-
-var assertResponseTests = []struct {
-	actual   *http.Response
-	expected builder.APIResponse
-	succeed  bool
-}{
-	{&basicResponse, basicAPI, true},       // Matching response and expected should succeed
-	{&statusCodeResponse, basicAPI, false}, // Mismatching status codes should fail
-	{&headerResponse, basicAPI, false},     // Missing header should fail
-	{&bodyResponse, basicAPI, false},       // Mismatching body should fail
-	{&noBodyResponse, noBodyAPI, true},     // Actual and expected with no body's should succeed
-	{&bodyResponse, noBodyAPI, true},       // If we dont expect a body but still receive one then succeed
-	{&noBodyResponse, emptyJSONAPI, false}, // If we dont specify a body but we receive empty string fail as its invalid JSON
-}
-
-var buildQueryStringTests = []struct {
-	input    map[string]string
-	expected []string
-}{
-	{map[string]string{}, []string{""}},
-	{map[string]string{"key": "value"}, []string{"?key=value"}},
-	{map[string]string{"key": "value", "another": "key"}, []string{"?another=key&key=value", "?key=value&another=key"}},
 }
 
 func TestAssertJSON(t *testing.T) {
@@ -144,6 +147,20 @@ func TestAssertJSON(t *testing.T) {
 	}
 }
 
+var assertResponseTests = []struct {
+	actual   *http.Response
+	expected builder.APIResponse
+	succeed  bool
+}{
+	{&basicResponse, basicAPI, true},       // Matching response and expected should succeed
+	{&statusCodeResponse, basicAPI, false}, // Mismatching status codes should fail
+	{&headerResponse, basicAPI, false},     // Missing header should fail
+	{&bodyResponse, basicAPI, false},       // Mismatching body should fail
+	{&noBodyResponse, noBodyAPI, true},     // Actual and expected with no body's should succeed
+	{&bodyResponse, noBodyAPI, true},       // If we dont expect a body but still receive one then succeed
+}
+
+
 func TestAssertResponse(t *testing.T) {
 	for _, test := range assertResponseTests {
 		if ok, _ := assertResponse(test.actual, test.expected); ok != test.succeed {
@@ -154,6 +171,15 @@ func TestAssertResponse(t *testing.T) {
 			t.Errorf("Received: %v Expected: %+v - Test should have: %+v", test.actual, test.expected, succeedText)
 		}
 	}
+}
+
+var buildQueryStringTests = []struct {
+	input    map[string]string
+	expected []string
+}{
+	{map[string]string{}, []string{""}},
+	{map[string]string{"key": "value"}, []string{"?key=value"}},
+	{map[string]string{"key": "value", "another": "key"}, []string{"?another=key&key=value", "?key=value&another=key"}},
 }
 
 func TestBuildQueryString(t *testing.T) {
