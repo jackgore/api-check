@@ -2,7 +2,7 @@
 
 `api-check` is a tool that allows you to simply and quickly test restful APIs. Written in Go, `api-check` can be used to test APIs written in any language.
 
-`api-check` works by creating test definitions which are plain JSON files. Test definitions describe the expected ins and outs of API endpoints. The test definitions are then ran against your running API to verify the results.
+`api-check` works by creating test definitions which are plain JSON files with a special `.ac.json` extension. Test definitions describe the expected ins and outs of API endpoints. The test definitions are then ran against your running API to verify the results.
 
 ## prerequisites
 
