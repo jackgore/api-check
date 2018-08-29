@@ -26,7 +26,7 @@ cd ${GOPATH}/src/github.com/JonathonGore/api-check && go install
 
 `api-check` looks for test definitions stored in `json` files with the `.ac.json` extension stored in any subdirectory in your project. 
 
-You can run all test definitions in your project by running `api-check` in the root of your project directory.
+You can run all test definitions in your project by running `api-check run` in the root of your project directory.
 
 ### Integrating with go test
 
@@ -47,7 +47,7 @@ func TestMain(t *testing.T) {
 
 ```
 
-The above will invoke `api-check` and run all test definitions at or below the current directory.
+The above will invoke `api-check run` and run all test definitions at or below the current directory.
 
 ## examples
 
@@ -98,7 +98,7 @@ The first test definition will make a `POST` request to the url specified in the
 
 The second test definition will make a `GET` request to `http://localhost:3000/users/Jack`. It will assert that it receives the attached `json` struct in the response body, as well as ensuring it receives a `200` status code.
 
-Running `api-check` in the same directory as `users.ac.json` will cause the tests to be ran and if successful result in the following output:
+Running `api-check run` in the same directory as `users.ac.json` will cause the tests to be ran and if successful result in the following output:
 
 ```
 Running go api-check
