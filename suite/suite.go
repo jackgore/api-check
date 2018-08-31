@@ -17,10 +17,6 @@ type RunConfig struct {
 	standalone bool
 }
 
-const (
-	confFile = ".ac.json"
-)
-
 var (
 	rconf = RunConfig{}
 )
@@ -48,7 +44,9 @@ func run(t *testing.T) {
 		return
 	}
 
-	conf, err := config.New(confFile)
+	// TODO: It will likely be a good idea to allow the user to specify an alternate
+	// config file.
+	conf, err := config.New(config.DefaultConfigFile)
 	if err != nil {
 		fmt.Printf("Unable to parse config file: %v\n", err)
 		return

@@ -9,6 +9,10 @@ type Config struct {
 	Hostname string `json:"hostname"`
 }
 
+const (
+	DefaultConfigFile = ".ac.json"
+)
+
 // New creats a new config object from the given filename.
 func New(filename string) (Config, error) {
 	var conf Config
