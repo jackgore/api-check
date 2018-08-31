@@ -33,31 +33,34 @@ func Verbose(isVerbose bool) {
 	rconf.verbose = isVerbose
 }
 
-func run(t *testing.T) {
+func run(t *testing.T) error {
 	printf("Running go api-check\n\n")
+
+	// For now we default the directory we look in for test definitions to be cwd.
+	dir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
 
 	// This loads the files containing step definitions below the working directory.
 	// Allows the user to have multiple files containing api testing definitions
-	files, err := loader.FindRunDefs()
+	files, err := loader.FindTestDefinitions(dir)
 	if err != nil {
-		fmt.Printf("Unable to find test definition files: %v\n", err)
-		return
+		return fmt.Errorf("unable to find test definition files: %v\n", err)
 	}
 
 	// TODO: It will likely be a good idea to allow the user to specify an alternate
 	// config file.
 	conf, err := config.New(config.DefaultConfigFile)
 	if err != nil {
-		fmt.Printf("Unable to parse config file: %v\n", err)
-		return
+		return fmt.Errorf("unable to parse config file: %v\n", err)
 	}
 
 	p := parser.New(conf)
 
 	tests, err := p.Parse(files)
 	if err != nil {
-		fmt.Printf("%v\n", err)
-		return
+		return fmt.Errorf("%v", err)
 	}
 
 	reports := runner.RunTests(tests)
@@ -76,6 +79,8 @@ func run(t *testing.T) {
 			}
 		}
 	}
+
+	return nil
 }
 
 // RunStandalone configures the runner to use os.Exit(1) if a failure test occurs, and then
@@ -84,7 +89,10 @@ func RunStandalone() {
 	rconf.standalone = true
 
 	var t *testing.T // Pass in nil testing context
-	run(t)
+	if err := run(t); err != nil {
+		fmt.Printf("Error running tests: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 // Run reads in *.ac.json files below or in the current directory and runs the test suite
@@ -95,4 +103,8 @@ func Run(t *testing.T) {
 	}
 
 	run(t)
+	if err := run(t); err != nil {
+		fmt.Printf("Error running tests: %v\n", err)
+		os.Exit(1)
+	}
 }

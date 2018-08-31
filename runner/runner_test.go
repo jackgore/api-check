@@ -85,12 +85,10 @@ func init() {
 }
 
 var buildRequestTests = []struct {
-	test builder.APITest
+	test     builder.APITest
 	expected *http.Request
-	success bool
-}{
-
-}
+	success  bool
+}{}
 
 func TestBuildRequest(t *testing.T) {
 	for _, test := range buildRequestTests {
@@ -104,7 +102,7 @@ func TestBuildRequest(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(*r, *test.expected) {
-			t.Errorf("mismatching request");
+			t.Errorf("mismatching request")
 		}
 	}
 }
@@ -159,7 +157,6 @@ var assertResponseTests = []struct {
 	{&noBodyResponse, noBodyAPI, true},     // Actual and expected with no body's should succeed
 	{&bodyResponse, noBodyAPI, true},       // If we dont expect a body but still receive one then succeed
 }
-
 
 func TestAssertResponse(t *testing.T) {
 	for _, test := range assertResponseTests {
