@@ -1,8 +1,8 @@
 ## api-check
 
-`api-check` is a tool that allows you to simply and quickly test restful APIs. Written in Go, `api-check` can be used to test APIs written in any language.
+`api-check` is a cli tool that allows you to simply and quickly test restful APIs. Written in Go, `api-check` can be used to test APIs written in any language.
 
-`api-check` works by creating test definitions which are plain JSON files with a special `.ac.json` extension. Test definitions describe the expected ins and outs of API endpoints. The test definitions are then ran against your running API to verify the results.
+`api-check` works by creating test definitions inside plain JSON files with a special `.ac.json` extension. Test definitions describe the requests to make to your API and the expected response. The test definitions are then made over the network against your running API to verify the results.
 
 ## prerequisites
 
@@ -16,7 +16,7 @@ cd ${GOPATH}/src/github.com/JonathonGore/api-check && go install
 
 **Note:** You need to ensure `${GOPATH}/bin` is in your `PATH` 
 
-** Coming soon `api-check` available in docker.
+*Coming soon `api-check` available in docker.*
 
 ## usage
 
@@ -27,6 +27,10 @@ cd ${GOPATH}/src/github.com/JonathonGore/api-check && go install
 `api-check` looks for test definitions stored in `json` files with the `.ac.json` extension stored in any subdirectory in your project. 
 
 You can run all test definitions in your project by running `api-check run` in the root of your project directory.
+
+For more info on available commands you can run:
+
+`$ api-check help`
 
 ### Integrating with go test
 
@@ -108,4 +112,3 @@ API Check Test for: http://localhost:3001/users/Jack succeeded
 
 2 tests ran. 2 successful. 0 failures.
 ```
-
