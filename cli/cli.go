@@ -15,6 +15,11 @@ const (
 	defaultVerbosity = true
 )
 
+// commandNotFound is executed when the user tries to execute an errorneous command.
+func commandNotFound(c *cli.Context, cmd string) {
+	fmt.Printf("%v has no commmand name '%v'\n", c.App.Name, cmd)
+}
+
 // generateAction defines the action that is run by invoking `api-check generate <name>`
 func generateAction(c *cli.Context) error {
 	if c.NArg() != 1 {
@@ -86,13 +91,8 @@ func ConfigureCLI() *cli.App {
 	app.Name = "api-check"
 	app.Usage = "automatically test your APIs"
 	app.Version = "0.0.1"
-	//	app.ExitErrHandler = handleError
 	app.Commands = buildCLICommands()
-
-	app.Action = func(c *cli.Context) error {
-		cli.ShowAppHelpAndExit(c, 0)
-		return nil
-	}
+	app.CommandNotFound = commandNotFound
 
 	return app
 }
