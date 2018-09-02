@@ -7,9 +7,9 @@ type Cookie struct {
 
 type APITest struct {
 	Description string      `json:"description"`
+	Method      string      `json:"method"`
 	Hostname    string      `json:"hostname"`
 	Endpoint    string      `json:"endpoint"`
-	Method      string      `json:"method"`
 	Request     APIRequest  `json:"request"`
 	Response    APIResponse `json:"response"`
 }
@@ -17,14 +17,14 @@ type APITest struct {
 type APIRequest struct {
 	Body        string            `json:"body"`
 	Headers     map[string]string `json:"headers"`
-	JSON        interface{}       `json:"json"`
 	QueryParams map[string]string `json:"query-params"`
-	Cookies     []Cookie          `json:"cookies"`
+	JSON        interface{}       `json:"json,omitempty"`
+	Cookies     []Cookie          `json:"cookies,omitempty"`
 }
 
 type APIResponse struct {
 	Body       string            `json:"body"`
 	Headers    map[string]string `json:"headers"`
-	JSON       interface{}       `json:"json"`
+	JSON       interface{}       `json:"json,omitempty"`
 	StatusCode int               `json:"code"`
 }

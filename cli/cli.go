@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 
+	"github.com/JonathonGore/api-check/builder"
 	"github.com/JonathonGore/api-check/config"
 	"github.com/JonathonGore/api-check/parser"
 	"github.com/JonathonGore/api-check/suite"
@@ -14,6 +15,21 @@ const (
 	defaultVerbosity = true
 )
 
+// generateAction defines the action that is run by invoking `api-check generate <name>`
+func generateAction(c *cli.Context) error {
+	if c.NArg() != 1 {
+		return cli.NewExitError(fmt.Sprintf("%v %v requires exactly 1 argument", c.App.Name, c.Command.Name), 1)
+	}
+
+	filename, err := builder.CreateSkeletonFile(c.Args().First())
+	if err != nil {
+		return cli.NewExitError(err, 1)
+	}
+
+	fmt.Printf("successfully created template file named %v\n", filename)
+	return nil
+}
+
 // verifyAction defines the action that is run by incoking `api-check verify <filename>`
 func verifyAction(c *cli.Context) error {
 	if c.NArg() == 0 {
@@ -22,7 +38,7 @@ func verifyAction(c *cli.Context) error {
 
 	conf, err := config.New(config.DefaultConfigFile)
 	if err != nil {
-		return fmt.Errorf("error parsing config file: %v", err)
+		return cli.NewExitError(fmt.Sprintf("error parsing config file: %v", err), 1)
 	}
 
 	p := parser.New(conf)
@@ -54,6 +70,12 @@ func buildCLICommands() []cli.Command {
 			Name:   "verify",
 			Usage:  "verify an api-check file",
 			Action: verifyAction,
+		},
+		{
+			Name:    "generate",
+			Aliases: []string{"gen"},
+			Usage:   "generate a skeleton api-check file",
+			Action:  generateAction,
 		},
 	}
 }
