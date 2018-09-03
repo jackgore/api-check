@@ -1,7 +1,6 @@
 package loader
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -29,21 +28,17 @@ func hasDoubleDotExt(path, ext string) bool {
 func FindTestDefinitions(dir string) ([]string, error) {
 	var files []string
 
-	fmt.Printf("Finding testing definitions for dir %v\n", dir)
 	filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
-		fmt.Printf("Searching file/dir: %v\n", path)
 		if err != nil || filepath.Base(path) == extension {
 			// When filepath.Base(path) == extension we are looking at the
 			// global configuration file '.ac.json'.
 			// Note: if err != nil we currently will not return an error as this
 			// will cause all other directories/files to be skipped.
-			fmt.Printf("received error when reading file %v: %v\n", path, err)
 			return nil
 		}
 
 		// We are looking to detect the .ac.json file extension
 		if !f.IsDir() && hasDoubleDotExt(path, extension) {
-			fmt.Println("found valid file")
 			files = append(files, path)
 		}
 		return nil
