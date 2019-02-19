@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 const (
@@ -19,27 +20,34 @@ const (
 
 // CreateSkeletonFile writes a .ac.json skeleton file with the given prefix.
 // Returns the name of the file written.
-func CreateSkeletonFile(prefix string) (string, error) {
+func CreateSkeletonFile(prefix string) error {
 	if len(prefix) == 0 {
-		return "", errors.New("name cannot be empty")
+		return errors.New("name cannot be empty")
 	}
 
-	filename := prefix + extension
+	filename := prefix
+
+	// If the provided prefix contains the '.ac.json' suffic don't append
+	// an addition '.ac.json' suffix.
+	if !strings.HasSuffix(prefix, extension) {
+		filename = filename + extension
+	}
+
 	if _, err := os.Stat(filename); err == nil {
 		// If the file already exists we must fail to avoid overwriting anything.
-		return "", fmt.Errorf("cannot create template file as file %v already exists", filename)
+		return fmt.Errorf("cannot create template file as file %v already exists", filename)
 	}
 
 	contents, err := JSONSkeleton()
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	if err := ioutil.WriteFile(filename, contents, 0644); err != nil {
-		return "", err
+		return fmt.Errorf("unable to write skeleton file %v: %v", filename, err)
 	}
 
-	return filename, nil
+	return nil
 }
 
 // Skeleton creates an APITest skeleton to use for generating a skeleton file.
@@ -61,10 +69,12 @@ func Skeleton() APITest {
 	}
 }
 
-// JSONSkeleteon returns the byte array representation of an empty
-// API test definition as part of an array.
+// JSONSkeleteon returns the byte array representation of an empty API test
+// definition as part of an array.
 func JSONSkeleton() ([]byte, error) {
 	skeleton := []APITest{Skeleton()}
+
+	// Marshal the into JSON skeleton using nice indentation.
 	d, err := json.MarshalIndent(&skeleton, "", "    ")
 	if err != nil {
 		return nil, err
