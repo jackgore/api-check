@@ -1,0 +1,4 @@
+{
+    "setup-script": "setup.sh",
+    "cleanup-script": "cleanup.sh"
+}    

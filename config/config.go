@@ -12,6 +12,12 @@ type Config struct {
 	// Default hostname used for API request, prevents you from needing to
 	// specifiy this for each test definition.
 	Hostname string `json:"hostname"`
+
+	// Name of a bash script to execute before running the test suite.
+	SetupScript string `json:"setup-script"`
+
+	// Name of a bash script to execute before finishing the test suite.
+	CleanupScript string `json:"cleanup-script"`
 }
 
 const (

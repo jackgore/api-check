@@ -3,6 +3,7 @@ package suite
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"testing"
 
 	"github.com/JonathonGore/api-check/config"
@@ -31,6 +32,24 @@ func printf(text string, args ...interface{}) {
 // Verbose accepts a boolean argument and sets the logging level accordingly
 func Verbose(isVerbose bool) {
 	rconf.verbose = isVerbose
+}
+
+// runScript will execute the bash script in the given filename if non empty.
+func runScript(filename string) error {
+	if len(filename) == 0 {
+		println("empty filename")
+		return nil
+	}
+
+	output, err := exec.Command("/bin/bash", filename).CombinedOutput()
+	defer fmt.Printf("%s", output) // Make sure the combied output gets printed
+	if _, ok := err.(*exec.ExitError); ok {
+		return fmt.Errorf("script %v did not complete sucessfully: %v", filename, err)
+	} else if err != nil {
+		return fmt.Errorf("unable to execute script: %v", err)
+	}
+
+	return nil
 }
 
 func run(t *testing.T) error {
@@ -63,10 +82,18 @@ func run(t *testing.T) error {
 		return fmt.Errorf("%v", err)
 	}
 
+	if err := runScript(conf.SetupScript); err != nil {
+		return fmt.Errorf("unable to run setup script: %v", err)
+	}
+
 	reports := runner.RunTests(tests)
 
 	if rconf.verbose {
 		printer.PrintReports(reports)
+	}
+
+	if err := runScript(conf.CleanupScript); err != nil {
+		return fmt.Errorf("unable to run cleanup script: %v", err)
 	}
 
 	for _, report := range reports {
