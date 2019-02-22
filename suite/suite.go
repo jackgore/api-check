@@ -37,7 +37,6 @@ func Verbose(isVerbose bool) {
 // runScript will execute the bash script in the given filename if non empty.
 func runScript(filename string) error {
 	if len(filename) == 0 {
-		println("empty filename")
 		return nil
 	}
 
