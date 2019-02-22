@@ -16,7 +16,7 @@ cd ${GOPATH}/src/github.com/JonathonGore/api-check && go install
 
 **Note:** You need to ensure `${GOPATH}/bin` is in your `PATH` 
 
-*Coming soon `api-check` available in docker.*
+*Coming soon `api-check` available in Homebrew.*
 
 ## usage
 
