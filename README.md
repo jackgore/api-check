@@ -112,3 +112,17 @@ API Check Test for: http://localhost:3001/users/Jack succeeded
 
 2 tests ran. 2 successful. 0 failures.
 ```
+
+### Configuring api-check
+
+`api-check` can be configured by placing a file named `.ac.json` in the directory where you will run your `api-check` commands.
+
+The `.ac.json` file is a plain JSON (see `examples/` for an exmaple of this file) file that supports the following keys:
+
+* `setup-script`
+    * The name of a bash script to be ran before executing any of the test suites.
+* `cleanup-script`
+    * The name of a bash script to be ran after the execution of all tests.
+* `hostname`
+    * The default hostname to be used in your test definitions, allows you to not have to specify hostname in each test definition.
+
