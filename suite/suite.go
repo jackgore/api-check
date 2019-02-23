@@ -55,8 +55,6 @@ func runScript(filename string) error {
 }
 
 func run(t *testing.T) error {
-	printf("Running go api-check\n\n")
-
 	// For now we default the directory we look in for test definitions to be cwd.
 	dir, err := os.Getwd()
 	if err != nil {
@@ -88,6 +86,7 @@ func run(t *testing.T) error {
 		return fmt.Errorf("unable to run setup script: %v", err)
 	}
 
+	printf("Running go api-check\n\n")
 	reports := runner.RunTests(tests)
 
 	if rconf.verbose {
