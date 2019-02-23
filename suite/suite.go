@@ -13,9 +13,11 @@ import (
 	"github.com/JonathonGore/api-check/runner"
 )
 
+// TODO: Remove this in favour of Config
 type RunConfig struct {
-	verbose    bool
-	standalone bool
+	verbose          bool
+	standalone       bool
+	muteScriptOutput bool
 }
 
 var (
@@ -34,6 +36,12 @@ func Verbose(isVerbose bool) {
 	rconf.verbose = isVerbose
 }
 
+// MuteScriptOutput determines if output from cleanup and setup scripts should
+// surpressed.
+func MuteScriptOutput(muteScriptOutput bool) {
+	rconf.muteScriptOutput = muteScriptOutput
+}
+
 // runScript will execute the bash script in the given filename if non empty.
 func runScript(filename string) error {
 	if len(filename) == 0 {
@@ -41,8 +49,12 @@ func runScript(filename string) error {
 	}
 
 	cmd := exec.Command("/bin/bash", filename)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+
+	// Only redirect output if unmuted.
+	if !rconf.muteScriptOutput {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
 
 	err := cmd.Run()
 	if _, ok := err.(*exec.ExitError); ok {
@@ -74,6 +86,9 @@ func run(t *testing.T) error {
 	if err != nil {
 		return fmt.Errorf("unable to parse config file: %v\n", err)
 	}
+
+	// TODO: This will be removed after we remove RunConfig from existence.
+	rconf.muteScriptOutput = conf.MuteScriptOutput
 
 	p := parser.New(conf)
 

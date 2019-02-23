@@ -18,12 +18,26 @@ type Config struct {
 
 	// Name of a bash script to execute before finishing the test suite.
 	CleanupScript string `json:"cleanup-script"`
+
+	// MuteScriptOutput determines if the output from setup and cleanup script
+	// should be surpressed.
+	MuteScriptOutput bool `json:"mute-script-output"`
 }
 
 const (
 	// The default file api-check will look for config in.
 	DefaultConfigFile = ".ac.json"
+
+	// The default option for muting script output.
+	DefaultMuteScriptOutput = false
 )
+
+// DefaultConfig we will use for the app.
+// NOTE: Currently this is not really needed as all values in config default to
+// the value we want to use (i.e Golang zero values).
+var DefaultConfig = Config{
+	MuteScriptOutput: DefaultMuteScriptOutput,
+}
 
 // New creats a new config object from the given filename.
 func New(filename string) (Config, error) {
@@ -32,7 +46,7 @@ func New(filename string) (Config, error) {
 	contents, err := ioutil.ReadFile(filename)
 	if err != nil {
 		// Dont return an error because its not needed to have a config file
-		return conf, nil
+		return DefaultConfig, nil
 	}
 
 	if err := json.Unmarshal(contents, &conf); err != nil {
