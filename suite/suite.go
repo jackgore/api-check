@@ -40,8 +40,11 @@ func runScript(filename string) error {
 		return nil
 	}
 
-	output, err := exec.Command("/bin/bash", filename).CombinedOutput()
-	defer fmt.Printf("%s", output) // Make sure the combied output gets printed
+	cmd := exec.Command("/bin/bash", filename)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
 	if _, ok := err.(*exec.ExitError); ok {
 		return fmt.Errorf("script %v did not complete sucessfully: %v", filename, err)
 	} else if err != nil {
