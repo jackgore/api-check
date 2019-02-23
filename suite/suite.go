@@ -77,14 +77,14 @@ func run(t *testing.T) error {
 	// Allows the user to have multiple files containing api testing definitions
 	files, err := loader.FindTestDefinitions(dir)
 	if err != nil {
-		return fmt.Errorf("unable to find test definition files: %v\n", err)
+		return fmt.Errorf("unable to find test definition files: %v", err)
 	}
 
 	// TODO: It will likely be a good idea to allow the user to specify an alternate
 	// config file.
 	conf, err := config.New(config.DefaultConfigFile)
 	if err != nil {
-		return fmt.Errorf("unable to parse config file: %v\n", err)
+		return fmt.Errorf("unable to parse config file: %v", err)
 	}
 
 	// TODO: This will be removed after we remove RunConfig from existence.
