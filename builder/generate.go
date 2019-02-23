@@ -19,10 +19,10 @@ const (
 )
 
 // CreateSkeletonFile writes a .ac.json skeleton file with the given prefix.
-// Returns the name of the file written.
-func CreateSkeletonFile(prefix string) error {
+// Returns the name of the file written and an error if applicable.
+func CreateSkeletonFile(prefix string) (string, error) {
 	if len(prefix) == 0 {
-		return errors.New("name cannot be empty")
+		return "", errors.New("filename cannot be empty")
 	}
 
 	filename := prefix
@@ -33,21 +33,21 @@ func CreateSkeletonFile(prefix string) error {
 		filename = filename + extension
 	}
 
+	// If the file already exists we must fail to avoid overwriting anything.
 	if _, err := os.Stat(filename); err == nil {
-		// If the file already exists we must fail to avoid overwriting anything.
-		return fmt.Errorf("cannot create template file as file %v already exists", filename)
+		return "", fmt.Errorf("cannot create template file as file %v already exists", filename)
 	}
 
 	contents, err := JSONSkeleton()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if err := ioutil.WriteFile(filename, contents, 0644); err != nil {
-		return fmt.Errorf("unable to write skeleton file %v: %v", filename, err)
+		return "", fmt.Errorf("unable to write skeleton file %v: %v", filename, err)
 	}
 
-	return nil
+	return filename, nil
 }
 
 // Skeleton creates an APITest skeleton to use for generating a skeleton file.

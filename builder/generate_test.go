@@ -9,17 +9,18 @@ import (
 )
 
 var createSkeletonFileTests = []struct {
-	prefix string
-	err    error
+	prefix   string
+	filename string
+	err      error
 }{
-	{"", errors.New("name cannot be empty")}, // Empty prefix should cause a failure to occur.
-	{"unit-test.ac.json", nil},               // Empty prefix should cause a failure to occur.
-	{"unit-test", nil},                       // Empty prefix should cause a failure to occur.
+	{"", "", errors.New("filename cannot be empty")}, // Empty prefix should cause a failure to occur.
+	{"unit-test.ac.json", "unit-test.ac.json", nil},  // Empty prefix should cause a failure to occur.
+	{"unit-test", "unit-test.ac.json", nil},          // Empty prefix should cause a failure to occur.
 }
 
 func TestCreateSkeletonFile(t *testing.T) {
 	for _, test := range createSkeletonFileTests {
-		err := CreateSkeletonFile(test.prefix)
+		filename, err := CreateSkeletonFile(test.prefix)
 
 		if test.err != nil {
 			// Case where we expect an error from the test.
@@ -41,6 +42,10 @@ func TestCreateSkeletonFile(t *testing.T) {
 				expectedContents, _ := JSONSkeleton()
 				if !reflect.DeepEqual(contents, expectedContents) {
 					t.Errorf("Found mismatching results when comparing skeleton contents")
+				}
+				// Make sure the file name that was created is as expected.
+				if test.filename != filename {
+					t.Errorf("received unexpected filename - expected: %v received: %v", test.filename, filename)
 				}
 			}
 		}

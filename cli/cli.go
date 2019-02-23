@@ -26,11 +26,12 @@ func generateAction(c *cli.Context) error {
 		return cli.NewExitError(fmt.Sprintf("%v %v requires exactly 1 argument", c.App.Name, c.Command.Name), 1)
 	}
 
-	if err := builder.CreateSkeletonFile(c.Args().First()); err != nil {
+	filename, err := builder.CreateSkeletonFile(c.Args().First())
+	if err != nil {
 		return cli.NewExitError(err, 1)
 	}
 
-	fmt.Printf("successfully created template file\n")
+	fmt.Printf("successfully created template file %v\n", filename)
 
 	return nil
 }
