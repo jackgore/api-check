@@ -44,8 +44,7 @@ func New(conf config.Config) Parser {
 	}
 }
 
-// ParseFile consumes a single filename and parses it into a list
-// of api tests.
+// ParseFile consumes a single filename and parses it into a list of api tests.
 func (p *Parser) ParseFile(file string) ([]builder.APITest, error) {
 	tests := []builder.APITest{}
 
@@ -69,15 +68,15 @@ func (p *Parser) ParseFile(file string) ([]builder.APITest, error) {
 	return tests, nil
 }
 
-// Parse consumes a list of filenames and attempts to parse them into a list
-// of api tests.
+// Parse consumes a list of filenames and attempts to parse them into a list of
+// api tests.
 func (p *Parser) Parse(filenames []string) ([]builder.APITest, error) {
 	tests := []builder.APITest{}
 
 	for _, name := range filenames {
 		results, err := p.ParseFile(name)
 		if err != nil {
-			return tests, fmt.Errorf("Error parsing file: %v - %v", name, err)
+			return tests, fmt.Errorf("error parsing file: %v - %v", name, err)
 		}
 
 		tests = append(tests, results...)
@@ -86,8 +85,8 @@ func (p *Parser) Parse(filenames []string) ([]builder.APITest, error) {
 	return tests, nil
 }
 
-// Validates the given status code. Defaulting to the default value
-// if needed.
+// validateStatusCode consumes an HTTP status code in order to validate that it
+// is legitimate. Sets to the default value if unset.
 func (p *Parser) validateStatusCode(code int) (int, error) {
 	// If code is 0 this means it was not set - so reset to default
 	if code == 0 {
@@ -101,8 +100,8 @@ func (p *Parser) validateStatusCode(code int) (int, error) {
 	return code, nil
 }
 
-// ValidMethod consumes a string and asserts that it is a valid http method
-// if it is not an error is returned. If the given method is empty it returns
+// ValidMethod consumes a string and asserts that it is a valid http method if
+// it is not an error is returned. If the given method is empty it returns
 // the default method. Case insensitive.
 func (p *Parser) validateMethod(method string) (string, error) {
 	if len(method) == 0 {
@@ -113,16 +112,15 @@ func (p *Parser) validateMethod(method string) (string, error) {
 
 	// We need method to be a http supported method
 	if _, ok := p.methods[method]; !ok {
-		return method, fmt.Errorf("Received unsupport http method: %v", method)
+		return method, fmt.Errorf("received unsupport http method: %v", method)
 	}
 
 	return method, nil
 }
 
-// Validates the given hostname and assert it is either non-empty or specified
-// in the api-check config.
-// Hostname is a required field for api-check
-// Whatever is in the test object should override the conf
+// validateHostname consumes a hostname and asserts that it is either non-empty
+// or specified in the api-check config file. Hostname is a required field for
+// api-check, whatever is in the test object should override the conf.
 func (p *Parser) validateHostname(hostname string) (string, error) {
 	if len(hostname) == 0 {
 		if p.conf.Hostname != "" {
@@ -146,23 +144,23 @@ func (p *Parser) validateHostname(hostname string) (string, error) {
 	return fmt.Sprintf("%v://%v", u.Scheme, u.Host), nil
 }
 
-// Validates the given endpoint returning either the input string,
-// a default value should the input be empty or an error if input is invalid.
+// validateEndpoint consumes an HTTP endpoint returning either the input string
+// or a default value should the input be empty or an error if input is invalid.
 func (p *Parser) validateEndpoint(endpoint string) (string, error) {
-	// We need the endpoint to begin with a forward slasg '/'
-	// Note: Not sure if we want to add a leading slach if the slash is missing
+	// We need the endpoint to begin with a forward slash '/'
+	// Note: Not sure if we want to add a leading slash if the slash is missing
 	if len(endpoint) == 0 {
 		return DefaultEndpoint, nil
 	}
 
 	if string(endpoint[0]) != "/" {
-		return endpoint, fmt.Errorf("Provided endpoint must begin witha '/'. Found: %v.", endpoint[0])
+		return endpoint, fmt.Errorf("provided endpoint must begin witha '/'. Found: %v.", endpoint[0])
 	}
 
 	return endpoint, nil
 }
 
-// Validate is used to validate paramaters of an APItest and replace empty
+// validate is used to validate paramaters of an APITest and replace empty
 // paramaters with default/initialized values.
 func (p *Parser) validate(test builder.APITest) (builder.APITest, error) {
 	var err error
