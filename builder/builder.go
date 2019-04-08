@@ -27,11 +27,35 @@ type APIRequest struct {
 	Cookies     []Cookie          `json:"cookies,omitempty"`
 }
 
+// JSONType describes the structure of the expected JSON to receive.
+type JSONType = map[string]interface{}
+
+// JSONArray describes the structure of an array of expected JSON.
+type JSONArrayOf struct {
+    Value interface{}
+}
+
 // APIResponse describes that api-check will expect from the server following
 // running an APITest.
 type APIResponse struct {
+    // Describes the exact body of the HTTP response that should be received
+    // from the server.
 	Body       string            `json:"body"`
-	Headers    map[string]string `json:"headers"`
+
+    // Describes the exact JSON expected from the server.
 	JSON       interface{}       `json:"json,omitempty"`
+
+    // TypeOf describes what type should be expected from the server. Instead
+    // of specifying exactly what should be received it describes the structure
+    // of what should be received.
+    TypeOf     *interface{}          `json:"ofType,omitempty"`
+
+    // Array describes the structure of the expected response in the 
+    ArrayOf    *interface{}       `json:"arrayOf,omitempty"`
+
+    // Describes the headers that are expected to be received from the server.
+	Headers    map[string]string `json:"headers"`
+
+    // Describes the status code expected from the server.
 	StatusCode int               `json:"code"`
 }
