@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
+	"strings"
 
 	"github.com/JonathonGore/api-check/builder"
 )
@@ -43,6 +44,120 @@ func buildURL(hostname, endpoint string, query map[string]string) (string, error
 	qstring := buildQueryString(query)
 
 	return hostname + endpoint + qstring, nil
+}
+
+const (
+	stringType = "string"
+	numberType = "number"
+	intType    = "int"
+	boolType   = "boolean"
+)
+
+// assertJSONType consumes an interface of "unknown" type and asserts that its
+// underlying type is that described by the expectedType string.
+func assertJSONType(value interface{}, expectedType string) bool {
+	expectedType = strings.ToLower(expectedType) // Avoid case issues.
+
+	switch expectedType {
+	case stringType:
+		// Value needs to be able to be unmarshaled as a string.
+		if _, ok := value.(string); !ok {
+			return false
+		}
+	case numberType:
+		// If number type is specified it can either be a "double" or an int.
+		if _, ok := value.(float64); !ok {
+			if _, ok = value.(int); !ok {
+				return false
+			}
+		}
+	case intType:
+		if _, ok := value.(int); !ok {
+			// Sometimes for some reason the underlying type is a float, but is
+			// really only an int
+			if val, ok := value.(float64); !ok || val != float64(int(val)) {
+				return false
+			}
+		}
+	case boolType:
+		if _, ok := value.(bool); !ok {
+			return false
+		}
+	default:
+		return false // Unexpected type
+	}
+
+	return true
+}
+
+// assertJSONArray asserts that the given interface is an array of the provided
+// object type stored in expected..
+func assertJSONArray(actual interface{}, expected interface{}) bool {
+	// Need to make sure actual is an array
+	values, ok := actual.([]interface{})
+	if !ok {
+		return false
+	} else if len(values) == 0 {
+		// Empty list is trivially true.
+		return true
+	}
+
+	// For each value we need to assert its JSONStructure is what we expect.
+	for _, val := range values {
+		if !assertJSONStructure(val, expected) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// assertJSONStructure consumes the actual response from the server and asserts
+// that it has the exact structure as specified in the provided interface
+// named expected.
+// TODO: Right now we allow there to be extra keys in the actual
+// response it may be useful to allow this to be configurable.
+func assertJSONStructure(actual interface{}, expected interface{}) bool {
+	// If expected is just a string that means it represents a basic type
+	if s, ok := expected.(string); ok {
+		return assertJSONType(actual, s)
+	}
+
+	// If expected is an array, it should only have one 0 or 1 elements.
+	// 0 Elements just means the value must be an array but does not specify
+	// on its contents.
+	if values, ok := expected.([]interface{}); ok {
+		// If len(values) > 1 bad input so return false
+		if len(values) > 1 {
+			return false
+		} else if len(values) == 1 {
+			// This we actually have to perform an assertion on each element
+			return assertJSONArray(actual, values[0])
+		}
+		// Length of values is 0, so we only need to assure that actual is an array.
+		_, ok = actual.([]interface{})
+
+		return ok
+	}
+
+	// The only other type expected should be is now map[string]interface{} so
+	// make sure both actual and expected satisfy that.
+	actualMap, ok1 := actual.(map[string]interface{})
+	expectedMap, ok2 := expected.(map[string]interface{})
+	if !ok1 || !ok2 {
+		return false
+	}
+
+	// Now for each key in expected we need to make sure it exists in actual
+	// and assertJSONStructure on the value.
+	for key, val := range expectedMap {
+		// If the key is not in actual we have failed the test
+		actualVal, ok := actualMap[key]
+		if !ok || !assertJSONStructure(actualVal, val) {
+			return false
+		}
+	}
+	return true
 }
 
 // Asserts that the actual and expected JSON are equal.
@@ -94,14 +209,39 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 		return false, fmt.Errorf("Unexpected status code received\n\nExpected:\n%v\n\nActual:\n%v\n\n", expected.StatusCode, resp.StatusCode)
 	}
 
+	// NOTE: There are basically 3 ways for us to compare request body content.
+	// 1) First is by directly comapring the content bytes to what is stored
+	//    in the `Body` variable in the test.
+	// 2) Second is by directly comparing JSON content, by comparing the JSON
+	//    provided with what is provided in the HTTP response.
+	// 3) Third is by only looking at the structure of the returned JSON.
+	//
+	// It is important that we only perform one of these three actions as it
+	// could result in weird behaviour if we do otherwise.
+
 	// Ensure the bodies are the same only if the expected body is non-empty
 	// NOTE: Right now we have no way of asserting the response body is empty
 	if expected.Body != "" && expected.Body != string(body) {
 		return false, fmt.Errorf("Mismatching bodies\n\nExpected:\n%v\n\nActual:\n%v\n\n", expected.Body, string(body))
 	}
 
+	// Check the structure of the response if TypeOf is present in API Test
+	if expected.Body == "" && expected.TypeOf != nil {
+		// TypeOf will be one of interface{}, map[string]interface{} or string
+		var actual interface{}
+
+		err = json.Unmarshal(body, &actual)
+		if err != nil {
+			return false, fmt.Errorf("received JSON in unexpected format %v", err)
+		}
+
+		if !assertJSONStructure(actual, *expected.TypeOf) {
+			return false, fmt.Errorf("mismatching JSON structure")
+		}
+	}
+
 	// Only assert JSON if defined and body is not
-	if string(expected.Body) == "" && expected.JSON != nil {
+	if expected.TypeOf == nil && expected.Body == "" && expected.JSON != nil {
 		var actual interface{}
 
 		err = json.Unmarshal(body, &actual)

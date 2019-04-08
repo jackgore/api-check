@@ -9,6 +9,10 @@ import (
 
 var p = New(config.Config{})
 
+func TestParseFile(t *testing.T) {
+
+}
+
 func TestParse(t *testing.T) {
 	if results, err := p.Parse([]string{}); err != nil {
 		t.Errorf("Received unexpected error when parsing empty list of files")
