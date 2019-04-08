@@ -73,11 +73,11 @@ func assertJSONType(value interface{}, expectedType string) bool {
 		}
 	case intType:
 		if _, ok := value.(int); !ok {
-            // Sometimes for some reason the underlying type is a float, but is
-            // really only an int
-            if val, ok := value.(float64); !ok || val != float64(int(val)) {
-                return false
-             }
+			// Sometimes for some reason the underlying type is a float, but is
+			// really only an int
+			if val, ok := value.(float64); !ok || val != float64(int(val)) {
+				return false
+			}
 		}
 	case boolType:
 		if _, ok := value.(bool); !ok {
@@ -91,81 +91,69 @@ func assertJSONType(value interface{}, expectedType string) bool {
 }
 
 // assertJSONArray asserts that the given interface is an array of the provided
-// object type. 
+// object type stored in expected..
 func assertJSONArray(actual interface{}, expected interface{}) bool {
-    // Need to make sure actual is an array
-    values, ok := actual.([]interface{})
-    if !ok {
-        return false
-    } else if len(values) == 0 {
-        // Empty list is trivially true.
-        return true
-    }
-
-    // For each value we need to assert its JSONStructure.
-    for _, val := range values {
-        // Check to see if expected is a map
-        if values, ok := expected.(map[string]interface{}); ok {
-            if !assertJSONStructure(val, values) {
-                return false
-            }
-        } else if expectedType, ok := expected.(string); ok {
-            if !assertJSONType(val, expectedType) {
-                return false
-            }
-        } else {
-            // Unexpected type in arrayOf
-            return false
-        }
-     }
-
-     return true
-}
-
-// assertJSONStructure consumes the actual response from the server and asserts
-// that it has the exact keys as specified in the provided TypeOf.
-// TODO: Right now we allow there to be extra keys in the actual
-// response it may be useful to allow this to be configurable.
-func assertJSONStructure(actual interface{}, expected interface{}) bool {
-	if len(expected) == 0 {
+	// Need to make sure actual is an array
+	values, ok := actual.([]interface{})
+	if !ok {
+		return false
+	} else if len(values) == 0 {
+		// Empty list is trivially true.
 		return true
 	}
 
-	// Note: as of right now JSONType should not be an array, which means in
-	// order for this function to return true actual must be able to be marshaled
-	// as a map[string]interface
-	actualMap, ok := actual.(map[string]interface{})
-	if !ok {
+	// For each value we need to assert its JSONStructure is what we expect.
+	for _, val := range values {
+		if !assertJSONStructure(val, expected) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// assertJSONStructure consumes the actual response from the server and asserts
+// that it has the exact structure as specified in the provided interface
+// named expected.
+// TODO: Right now we allow there to be extra keys in the actual
+// response it may be useful to allow this to be configurable.
+func assertJSONStructure(actual interface{}, expected interface{}) bool {
+	// If expected is just a string that means it represents a basic type
+	if s, ok := expected.(string); ok {
+		return assertJSONType(actual, s)
+	}
+
+	// If expected is an array, it should only have one 0 or 1 elements.
+	// 0 Elements just means the value must be an array but does not specify
+	// on its contents.
+	if values, ok := expected.([]interface{}); ok {
+		// If len(values) > 1 bad input so return false
+		if len(values) > 1 {
+			return false
+		} else if len(values) == 1 {
+			// This we actually have to perform an assertion on each element
+			return assertJSONArray(actual, values[0])
+		}
+		// Length of values is 0, so we only need to assure that actual is an array.
+		_, ok = actual.([]interface{})
+
+		return ok
+	}
+
+	// The only other type expected should be is now map[string]interface{} so
+	// make sure both actual and expected satisfy that.
+	actualMap, ok1 := actual.(map[string]interface{})
+	expectedMap, ok2 := expected.(map[string]interface{})
+	if !ok1 || !ok2 {
 		return false
 	}
 
 	// Now for each key in expected we need to make sure it exists in actual
-	// and potentially assertJSONStructure on the value.
-	for key, val := range expected {
+	// and assertJSONStructure on the value.
+	for key, val := range expectedMap {
 		// If the key is not in actual we have failed the test
 		actualVal, ok := actualMap[key]
-		if !ok {
-			return false
-		}
-
-		// If val is a string, it should be describing the expected type
-		if expectedType, ok := val.(string); ok {
-			// Now we need to make sure actualVal is the correct type.
-			if !assertJSONType(actualVal, expectedType) {
-				return false
-			}
-		} else if structure, ok := val.(builder.JSONType); ok {
-			// Need to recursively ensure this is true.
-			if !assertJSONStructure(actualVal, structure) {
-				return false
-			}
-        } else if arrayType, ok := val.(builder.JSONArrayOf); ok {
-           // Expected an array of the given type
-           if !assertJSONArray(actualVal, arrayType.Value) {
-                return false
-           }
-		} else {
-			// None of the options were matched
+		if !ok || !assertJSONStructure(actualVal, val) {
 			return false
 		}
 	}
@@ -239,6 +227,7 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 
 	// Check the structure of the response if TypeOf is present in API Test
 	if expected.Body == "" && expected.TypeOf != nil {
+		// TypeOf will be one of interface{}, map[string]interface{} or string
 		var actual interface{}
 
 		err = json.Unmarshal(body, &actual)
@@ -246,13 +235,13 @@ func assertResponse(resp *http.Response, expected builder.APIResponse) (bool, er
 			return false, fmt.Errorf("received JSON in unexpected format %v", err)
 		}
 
-		if !assertJSONStructure(actual, expected.TypeOf) {
+		if !assertJSONStructure(actual, *expected.TypeOf) {
 			return false, fmt.Errorf("mismatching JSON structure")
 		}
 	}
 
 	// Only assert JSON if defined and body is not
-	if len(expected.TypeOf) == 0 && expected.Body == "" && expected.JSON != nil {
+	if expected.TypeOf == nil && expected.Body == "" && expected.JSON != nil {
 		var actual interface{}
 
 		err = json.Unmarshal(body, &actual)

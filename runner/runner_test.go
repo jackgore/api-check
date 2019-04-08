@@ -19,7 +19,7 @@ const (
 	json5 = `["hello", "jack"]`
 	json6 = `{ "testing": "jack", "extra":"key" }`
 
-    userJSON = `
+	userJSON = `
     {
         "name": "Jack",
         "age": 21,
@@ -31,7 +31,7 @@ const (
         }
     }
 `
-    usersArrayJSON = `[
+	usersArrayJSON = `[
     {
         "name": "Jack",
         "age": 21,
@@ -54,9 +54,9 @@ const (
     }
 ]`
 
-    stringArrayJSON = `["hello", "world"]`
-    
-    nestedUserJSON = `
+	stringArrayJSON = `["hello", "world"]`
+
+	nestedUserJSON = `
     {
         "name": "Jack",
         "age": 21,
@@ -85,85 +85,84 @@ const (
 )
 
 var (
-   validStringArrayStructure = builder.JSONArrayOf{"string"}
-   invalidStringArrayStructure = builder.JSONArrayOf{"int"}
+	validStringArrayStructure   = "string"
+	invalidStringArrayStructure = "int"
 
-    nestedUserJSONStructure1 = builder.JSONType{
-        "name": "string",
-        "age": "int",
-        "isMale": "boolean",
-        "placesLived": builder.JSONArrayOf{
-            builder.JSONType{
-                "city": "string",
-                "latitude": "number",
-                "longitude": "number",
-                "months": builder.JSONArrayOf{"string"},
-            },
-         },
-    }
-    
-    invalidNestedUserJSONStructure1 = builder.JSONType{
-        "name": "string",
-        "age": "int",
-        "isMale": "boolean",
-        "placesLived": builder.JSONArrayOf{
-            builder.JSONType{
-                "city": "string",
-                "latitude": "number",
-                "longitude": "number",
-                "months": builder.JSONArrayOf{"number"},
-            },
-         },
-    }
-    
-    invalidNestedUserJSONStructure2 = builder.JSONType{
-        "name": "string",
-        "age": "int",
-        "isMale": "boolean",
-        "placesLived": builder.JSONType{
-            "city": "string",
-            "latitude": "number",
-            "longitude": "number",
-        },
+	nestedUserJSONStructure1 = builder.JSONType{
+		"name":   "string",
+		"age":    "int",
+		"isMale": "boolean",
+		"placesLived": builder.JSONArrayOf{
+			builder.JSONType{
+				"city":      "string",
+				"latitude":  "number",
+				"longitude": "number",
+				"months":    builder.JSONArrayOf{"string"},
+			},
+		},
+	}
 
-    }
+	invalidNestedUserJSONStructure1 = builder.JSONType{
+		"name":   "string",
+		"age":    "int",
+		"isMale": "boolean",
+		"placesLived": builder.JSONArrayOf{
+			builder.JSONType{
+				"city":      "string",
+				"latitude":  "number",
+				"longitude": "number",
+				"months":    builder.JSONArrayOf{"number"},
+			},
+		},
+	}
 
-    validUserJSONStructure1 = builder.JSONType{
-        "name": "string",
-        "age": "int",
-        "isMale": "boolean",
-        "hometown": builder.JSONType{
-            "city": "string",
-            "latitude": "number",
-            "longitude": "number",
-         },
-    }
+	invalidNestedUserJSONStructure2 = builder.JSONType{
+		"name":   "string",
+		"age":    "int",
+		"isMale": "boolean",
+		"placesLived": builder.JSONType{
+			"city":      "string",
+			"latitude":  "number",
+			"longitude": "number",
+		},
+	}
 
-    validUserJSONStructure2 = builder.JSONType{
-        "name": "strING",
-        "age": "number",
-        "isMale": "boOLean",
-        "hometown": builder.JSONType{
-            "city": "String",
-            "latitude": "nUmber",
-            "longitude": "number",
-         },
-    }
+	validUserJSONStructure1 = builder.JSONType{
+		"name":   "string",
+		"age":    "int",
+		"isMale": "boolean",
+		"hometown": builder.JSONType{
+			"city":      "string",
+			"latitude":  "number",
+			"longitude": "number",
+		},
+	}
 
-    invalidUserJSONStructure1 = builder.JSONType{
-        "name": "strING",
-        "age": "number",
-        "isMale": "boOLean",
-        "hometown": builder.JSONType{
-            "city": 8,
-            "latitude": "nUmber",
-            "longitude": "number",
-         },
-    }
+	validUserJSONStructure2 = builder.JSONType{
+		"name":   "strING",
+		"age":    "number",
+		"isMale": "boOLean",
+		"hometown": builder.JSONType{
+			"city":      "String",
+			"latitude":  "nUmber",
+			"longitude": "number",
+		},
+	}
 
-    validUsersArrayJSONStructure1 = builder.JSONArrayOf{validUserJSONStructure1}
-    validUsersArrayJSONStructure2 = builder.JSONArrayOf{validUserJSONStructure2}
-    invalidUsersArrayJSONStructure1 = builder.JSONArrayOf{invalidUserJSONStructure1}
+	invalidUserJSONStructure1 = builder.JSONType{
+		"name":   "strING",
+		"age":    "number",
+		"isMale": "boOLean",
+		"hometown": builder.JSONType{
+			"city":      "number",
+			"latitude":  "nUmber",
+			"longitude": "number",
+		},
+	}
+
+	validUsersArrayJSONStructure1   = validUserJSONStructure1
+	validUsersArrayJSONStructure2   = validUserJSONStructure2
+	invalidUsersArrayJSONStructure1 = invalidUserJSONStructure1
 
 	basicAPI = builder.APIResponse{
 		Body: "test",
@@ -343,16 +342,16 @@ func TestBuildQueryString(t *testing.T) {
 }
 
 var assertJSONStructureTests = []struct {
-    actual string
-    structure builder.JSONType
-    succeed bool
+	actual    string
+	structure builder.JSONType
+	succeed   bool
 }{
-    {userJSON, validUserJSONStructure1, true},
-    {userJSON, validUserJSONStructure2, true},
-    {userJSON, invalidUserJSONStructure1, false},
-    {nestedUserJSON, nestedUserJSONStructure1, true},
-    {nestedUserJSON, invalidNestedUserJSONStructure1, false},
-    {nestedUserJSON, invalidNestedUserJSONStructure2, false},
+	{userJSON, validUserJSONStructure1, true},
+	{userJSON, validUserJSONStructure2, true},
+	{userJSON, invalidUserJSONStructure1, false},
+	{nestedUserJSON, nestedUserJSONStructure1, true},
+	{nestedUserJSON, invalidNestedUserJSONStructure1, false},
+	{nestedUserJSON, invalidNestedUserJSONStructure2, false},
 }
 
 func TestAssertJSONStructure(t *testing.T) {
@@ -363,22 +362,22 @@ func TestAssertJSONStructure(t *testing.T) {
 			t.Errorf("Unable to unmarshal JSON: %v", err)
 		}
 
-        if assertJSONStructure(actual, test.structure) != test.succeed {
-            t.Errorf("Failed test #%v", i)
+		if assertJSONStructure(actual, test.structure) != test.succeed {
+			t.Errorf("Failed test #%v", i)
 		}
 	}
 }
 
 var assertJSONArrayTests = []struct {
-    actual string
-    structure builder.JSONArrayOf
-    succeed bool
+	actual    string
+	structure interface{}
+	succeed   bool
 }{
-    {usersArrayJSON, validUsersArrayJSONStructure1, true},
-    {usersArrayJSON, validUsersArrayJSONStructure2, true},
-    {usersArrayJSON, invalidUsersArrayJSONStructure1, false},
-    {stringArrayJSON, validStringArrayStructure, true},
-    {stringArrayJSON, invalidStringArrayStructure, false},
+	{usersArrayJSON, validUsersArrayJSONStructure1, true},
+	{usersArrayJSON, validUsersArrayJSONStructure2, true},
+	{usersArrayJSON, invalidUsersArrayJSONStructure1, false},
+	{stringArrayJSON, validStringArrayStructure, true},
+	{stringArrayJSON, invalidStringArrayStructure, false},
 }
 
 func TestAssertJSONArray(t *testing.T) {
@@ -389,8 +388,8 @@ func TestAssertJSONArray(t *testing.T) {
 			t.Errorf("Unable to unmarshal JSON: %v", err)
 		}
 
-		if assertJSONArray(actual, test.structure.Value) != test.succeed {
-            t.Errorf("Failed test #%v", i)
+		if assertJSONArray(actual, test.structure) != test.succeed {
+			t.Errorf("Failed test #%v", i)
 		}
 	}
 }
